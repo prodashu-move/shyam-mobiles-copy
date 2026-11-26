@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'core/i18n.dart';
 import 'core/router.dart';
 import 'core/theme/theme.dart';
 import 'features/notifications/widgets/notification_widgets.dart';
@@ -17,6 +18,9 @@ class App extends ConsumerWidget {
         theme: lightTheme,
         themeMode: ThemeMode.light, // light-only by product decision, even when the phone is in dark mode
         routerConfig: ref.watch(routerProvider),
+        locale: Locale(ref.watch(languageProvider).name),
+        supportedLocales: const [Locale('en'), Locale('hi')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates, // Hindi for the system's own labels too
         // Layouts are checked up to 1.3x; beyond that cards and the nav bar start clipping.
         builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
           // Transparent gesture/nav bar so content draws behind it; dark icons on the light UI.

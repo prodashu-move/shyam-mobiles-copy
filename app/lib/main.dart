@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
+import 'core/i18n.dart';
 import 'core/backend.dart';
 import 'core/deep_links.dart';
 import 'core/firebase.dart';
@@ -20,6 +21,7 @@ Future<void> main() async {
   await initSupabase();
   if (backend == Backend.firebase) await initFirebase(); // App Check, emulators, Analytics consent (docs/FIREBASE.md §2)
   final container = ProviderContainer(retry: noAutoRetry);
+  await container.read(languageProvider.notifier).load(); // the saved language before the first frame
   await container.read(networkProvider.notifier).start(); // data-saver signals before the first image loads
   runApp(UncontrolledProviderScope(container: container, child: const App()));
   // The shop changes fees, COD, hours and banners on its side: read them again whenever the app comes back.

@@ -11,7 +11,6 @@ import '../../../core/supabase.dart' show currentUserIdProvider;
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/widgets.dart';
-import '../../account/data/profile.dart';
 import '../../cart/data/cart.dart';
 import '../../exchange/widgets/exchange_widgets.dart' show showExchangeSheet;
 import '../../offers/data/auto_apply.dart' show bestAutoApply;
@@ -82,42 +81,6 @@ class _RotatingSearchHintState extends State<RotatingSearchHint> {
           ),
         ],
       );
-}
-
-/// "Good evening, Ravi" over the carousel, warm like a shopkeeper's hello, and the shop's hours under it. The first
-/// name only when signed in with one saved.
-class HomeGreeting extends ConsumerWidget {
-  const HomeGreeting({super.key, this.hours = '', this.now});
-
-  final String hours; // store_settings.store_hours, as the owner wrote it ("9 am – 10 pm")
-  final DateTime? now; // tests pin the clock
-
-  static String hello(int hour) => switch (hour) {
-        >= 5 && < 12 => 'Good morning',
-        >= 12 && < 17 => 'Good afternoon',
-        _ => 'Good evening',
-      };
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = Theme.of(context).textTheme;
-    final first = ref.watch(profileProvider).value?.fullName?.trim().split(RegExp(r'\s+')).first;
-    final line = hello((now ?? DateTime.now()).hour) + (first == null || first.isEmpty ? '' : ', $first');
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, Space.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(line, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.displaySmall?.copyWith(fontSize: 24, height: 1.15)),
-          if (hours.isNotEmpty)
-            Text('Shop hours $hours · Waidhan',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: t.bodySmall?.copyWith(color: BrandColors.saffron, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
 }
 
 /// "Complete your order": the signed-in customer's cart, back on Home: up to three photos, the count and the total,
@@ -491,4 +454,69 @@ class _ServiceTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The wordmark's mirror flash: a bright band sweeps across [child] once after Home opens, then every few seconds.
+/// Still when the phone asks for less motion; quiet between sweeps (a timer, not a looping animation), so tests settle.
+class MirrorShine extends StatefulWidget {
+  const MirrorShine({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<MirrorShine> createState() => _MirrorShineState();
+}
+
+class _MirrorShineState extends State<MirrorShine> with SingleTickerProviderStateMixin {
+  late final _sweep = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(milliseconds: 800), () {
+      _flash();
+      _timer = Timer.periodic(const Duration(seconds: 5), (_) => _flash());
+    });
+  }
+
+  void _flash() {
+    if (!mounted || MediaQuery.disableAnimationsOf(context) || !TickerMode.valuesOf(context).enabled) return;
+    _sweep.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _sweep.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _sweep,
+        child: widget.child,
+        builder: (context, child) => !_sweep.isAnimating
+            ? child!
+            : ShaderMask(
+                blendMode: BlendMode.srcATop, // paints only on the letters
+                shaderCallback: (bounds) => LinearGradient(
+                  begin: const Alignment(-1, -0.4),
+                  end: const Alignment(1, 0.4), // a slight slant, like light on glass
+                  colors: [Colors.white.withValues(alpha: 0), Colors.white.withValues(alpha: 0.9), Colors.white.withValues(alpha: 0)],
+                  stops: const [0.4, 0.5, 0.6],
+                  transform: _Slide(Curves.easeInOut.transform(_sweep.value) * 2 - 1),
+                ).createShader(bounds),
+                child: child,
+              ),
+      );
+}
+
+class _Slide extends GradientTransform {
+  const _Slide(this.t);
+
+  final double t; // -1: the band off the left edge, 1: off the right
+
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) => Matrix4.translationValues(bounds.width * t, 0, 0);
 }

@@ -6,8 +6,10 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../core/errors.dart';
 import '../../../core/format.dart';
+import '../../../core/i18n.dart';
 import '../../../core/supabase.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/widgets/language.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../exchange/data/exchange_repository.dart' show exchangeRepositoryProvider;
@@ -148,6 +150,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                 subtitle: switch (ref.watch(unreadCountProvider)) { 0 => null, final n => '$n unread' }),
             row(PhosphorIconsRegular.userCircle, 'Profile', () => context.push('/account/profile'),
                 tint: (BrandColors.slateMist, BrandColors.slate)),
+            row(PhosphorIconsRegular.translate, tr('Language'), () => showLanguageSheet(context, ref),
+                tint: Worlds.offers, subtitle: currentLanguage.label),
             row(PhosphorIconsRegular.shieldCheck, 'Privacy', () => context.push('/account/privacy'),
                 tint: (BrandColors.slateMist, BrandColors.slate), subtitle: 'Usage data, crash reports, your data'),
             row(

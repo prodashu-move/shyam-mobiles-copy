@@ -14,6 +14,7 @@ import '../../../core/supabase.dart';
 import '../../../core/theme/generative.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/blocks.dart';
+import '../../../core/widgets/language.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../cart/data/cart.dart';
@@ -69,7 +70,8 @@ class HomeScreen extends ConsumerWidget {
       ref.invalidate(homeProvider);
       ref.invalidate(storeSettingsProvider);
     });
-    return Scaffold(
+    return AskLanguageOnce(
+        child: Scaffold(
       // the carousel grows a touch while the page is pulled down
       body: OverscrollScope(
         child: SafeArea(
@@ -97,7 +99,7 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 
   List<Widget> _sections(BuildContext context, WidgetRef ref, HomeData d, StoreSettings? settings,
@@ -169,7 +171,6 @@ class HomeScreen extends ConsumerWidget {
     final phones = [for (final c in d.featured) if (phoneSlugs.contains(c.categorySlug)) c];
     final phoneCategory = phones.firstOrNull?.categorySlug ?? 'smartphones';
     return [
-      SliverToBoxAdapter(key: const ValueKey('greeting'), child: HomeGreeting(hours: settings?.storeHours ?? '')),
       if (slides.isNotEmpty)
         SliverToBoxAdapter(
           key: const ValueKey('hero'),
@@ -300,15 +301,18 @@ class _TopBar extends SliverPersistentHeaderDelegate {
                   const BrandMark(size: 32),
                   const SizedBox(width: Space.md),
                   Expanded(
-                    child: Text(
-                      'Shyam Mobiles',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      // the wordmark is a logo: it keeps its size when the phone's text is larger
-                      textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.1),
-                      style: t.displaySmall?.copyWith(fontSize: 22, height: 1),
+                    child: MirrorShine(
+                      child: Text(
+                        'Shyam Mobiles',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        // the wordmark is a logo: it keeps its size when the phone's text is larger
+                        textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.1),
+                        style: t.displaySmall?.copyWith(fontSize: 22, height: 1, fontStyle: FontStyle.italic),
+                      ),
                     ),
                   ),
+                  const LanguageButton(),
                   const NotificationBell(), // left of Call; nothing when signed out
                   IconButton(
                     tooltip: 'WhatsApp the shop',

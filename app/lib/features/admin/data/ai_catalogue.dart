@@ -6,7 +6,7 @@ import 'package:excel/excel.dart';
 import 'package:firebase_ai/firebase_ai.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show debugPrint, kReleaseMode;
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -279,16 +279,9 @@ class GeminiCatalogueAi implements CatalogueAi {
     );
     // a hung call spun for 3 minutes before the SDK gave up: the fast model answers in ~6 s
     final limit = Duration(seconds: model == aiModelFast ? 25 : 40);
-    final watch = Stopwatch()..start();
-    try {
-      final text = (await m.generateContent([Content.multi(parts)]).timeout(limit)).text;
-      if (text == null || text.isEmpty) throw const FormatException('Empty answer.');
-      debugPrint('AI $model ok in ${watch.elapsedMilliseconds} ms');
-      return text;
-    } catch (e) {
-      debugPrint('AI $model failed after ${watch.elapsedMilliseconds} ms: $e'); // adb logcat: the real reason
-      rethrow;
-    }
+    final text = (await m.generateContent([Content.multi(parts)]).timeout(limit)).text;
+    if (text == null || text.isEmpty) throw const FormatException('Empty answer.');
+    return text;
   }
 
   /// Flash-Lite first; Flash when the answer is not a usable result. Quota and network errors are not retried.

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import 'i18n.dart';
 import 'theme/tokens.dart';
 
 /// A list loaded a page at a time. [moreFailed]: the last next-page load failed; paging pauses until a retry, so a
@@ -99,11 +100,11 @@ class PagedFooter extends StatelessWidget {
           child: TextButton.icon(
             onPressed: onRetry,
             icon: const Icon(PhosphorIconsRegular.arrowClockwise),
-            label: const Text('Couldn’t load more. Try again'),
+            label: Text(tr('Couldn’t load more. Try again')),
           ),
         )
       : Padding(
           padding: const EdgeInsets.all(Space.lg),
-          child: Center(child: CircularProgressIndicator(semanticsLabel: 'Loading $what')),
+          child: Center(child: CircularProgressIndicator(semanticsLabel: tr('Loading {what}', {'what': tr(what)}))),
         );
 }

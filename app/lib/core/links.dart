@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../features/offers/data/offers.dart';
 import 'env.dart';
+import 'i18n.dart';
 import 'format.dart';
 import 'models/models.dart';
 import 'stories.dart';
@@ -26,9 +27,12 @@ Uri? shareLink({String? product, String? offer, String? code, String host = Env.
 String shareText(String what, {Uri? link, Referral? referral}) {
   final code = referral == null
       ? null
-      : 'Use my code ${referral.code} for ${formatInr(referral.friendPaise)} off your first order of '
-          '${formatInr(referral.minOrderPaise)} or more.';
-  return [what, ?code, link?.toString() ?? 'Get the Shyam Mobiles app on Google Play.'].join('\n');
+      : tr('Use my code {code} for {amount} off your first order of {min} or more.', {
+          'code': referral.code,
+          'amount': formatInr(referral.friendPaise),
+          'min': formatInr(referral.minOrderPaise),
+        });
+  return [what, ?code, link?.toString() ?? tr('Get the Shyam Mobiles app on Google Play.')].join('\n');
 }
 
 typedef OpenLink = ({String to, String? code});
@@ -47,8 +51,8 @@ OpenLink? openLink(Uri uri) {
 }
 
 /// The snackbar once a friend's code from a link is applied: the welcome coupon `apply_referral_code` returns.
-String friendCodeMessage(Offer welcome) => 'Your friend’s code is in: ${formatInr(welcome.value)} off your first '
-    'order of ${formatInr(welcome.minSubtotalPaise)} or more';
+String friendCodeMessage(Offer welcome) => tr('Your friend’s code is in: {amount} off your first order of {min} or more',
+    {'amount': formatInr(welcome.value), 'min': formatInr(welcome.minSubtotalPaise)});
 
 /// App-bar Share: the system share sheet with [what], a link to [product] or [offer] (or the app), and the sharer's
 /// referral code when they're signed in and Refer & earn is on. With a [story] and a story app on the phone, a
@@ -84,7 +88,7 @@ class _ShareButtonState extends ConsumerState<ShareButton> {
               children: [
                 ListTile(
                   leading: const SizedBox.square(dimension: 36, child: Icon(PhosphorIconsRegular.shareNetwork)),
-                  title: const Text('Share a link'),
+                  title: Text(tr('Share a link')),
                   onTap: () => Navigator.pop(sheet, 'link'),
                 ),
                 StoryTiles(story, onPick: (app) => Navigator.pop(sheet, app)),
@@ -106,7 +110,7 @@ class _ShareButtonState extends ConsumerState<ShareButton> {
       final link = shareLink(product: widget.product, offer: widget.offer, code: referral?.code);
       await SharePlus.instance.share(ShareParams(text: shareText(widget.what, link: link, referral: referral)));
     } catch (_) {
-      if (mounted) showMessage(context, 'Couldn’t open sharing. Try again.');
+      if (mounted) showMessage(context, tr('Couldn’t open sharing. Try again.'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -114,7 +118,7 @@ class _ShareButtonState extends ConsumerState<ShareButton> {
 
   @override
   Widget build(BuildContext context) => IconButton(
-        tooltip: 'Share',
+        tooltip: tr('Share'),
         style: widget.style,
         onPressed: _busy ? null : _share,
         icon: _busy

@@ -7,6 +7,7 @@ import '../../../core/theme/tokens.dart';
 import '../data/auto_apply.dart';
 import '../data/offers.dart';
 import 'offer_widgets.dart' show offerHeadline;
+import '../../../core/i18n.dart';
 
 /// Home's "Wedding season · 5% off applied at checkout" while an auto-apply offer runs (Campaign calendar): one line,
 /// with the code only when it is readable ([readableCode]). It fills the code too, so "applied" is true; the cart
@@ -26,8 +27,13 @@ class OccasionChip extends ConsumerWidget {
     if (best == null) return const SizedBox.shrink();
     ref.read(autoCouponProvider.notifier).fill(offers!, at);
     final applied = ref.watch(couponCodeProvider) == best.code;
-    final text = '${occasionOf(best.title)} · ${offerHeadline(best)}${readableCode(best.code) ? ' with ${best.code}' : ''}'
-        '${applied ? ' applied' : ''} at checkout';
+    final head = '${occasionOf(best.title)} · ${offerHeadline(best)}';
+    final text = tr(
+      readableCode(best.code)
+          ? (applied ? '{head} with {code} applied at checkout' : '{head} with {code} at checkout')
+          : (applied ? '{head} applied at checkout' : '{head} at checkout'),
+      {'head': head, 'code': best.code},
+    );
     const bg = BrandColors.mint, fg = BrandColors.mintInk;
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),

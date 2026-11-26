@@ -16,6 +16,7 @@ import '../../exchange/widgets/exchange_widgets.dart' show showExchangeSheet;
 import '../../offers/data/auto_apply.dart' show bestAutoApply;
 import '../../offers/data/offers.dart';
 import '../../offers/widgets/offer_widgets.dart' show copyCode, offerHeadline, timeLeft;
+import '../../../core/i18n.dart';
 
 /// The search hint cycles through what the shop sells, every 3 s, so the field reads as "you can find it here".
 /// Still with reduce-motion on.
@@ -57,7 +58,7 @@ class _RotatingSearchHintState extends State<RotatingSearchHint> {
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          Text('Search ', style: widget.style),
+          Text(tr('Search '), style: widget.style),
           Expanded(
             child: ClipRect(
               child: AnimatedSwitcher(
@@ -70,7 +71,7 @@ class _RotatingSearchHintState extends State<RotatingSearchHint> {
                   child: FadeTransition(opacity: a, child: child),
                 ),
                 child: Text(
-                  '“${RotatingSearchHint.words[_i]}”',
+                  '“${tr(RotatingSearchHint.words[_i])}”',
                   key: ValueKey(_i),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -121,11 +122,11 @@ class CartNudge extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Complete your order',
+                      Text(tr('Complete your order'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: t.titleSmall?.copyWith(color: BrandColors.peacockInk)),
-                      Text('$count ${count == 1 ? 'item' : 'items'} · ${formatInr(total)}',
+                      Text('${count == 1 ? tr('1 item') : tr('{n} items', {'n': count})} · ${formatInr(total)}',
                           maxLines: 1, overflow: TextOverflow.ellipsis, style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
                     ],
                   ),
@@ -138,7 +139,7 @@ class CartNudge extends ConsumerWidget {
                     visualDensity: VisualDensity.compact,
                     padding: const EdgeInsets.symmetric(horizontal: Space.md),
                   ),
-                  child: const Text('Checkout'),
+                  child: Text(tr('Checkout')),
                 ),
               ],
             ),
@@ -164,7 +165,7 @@ class CouponTickets extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SectionHeader('Coupons for you', gutter: Space.gutter, onSeeAll: () => context.push('/offers')),
+        SectionHeader(tr('Coupons for you'), gutter: Space.gutter, onSeeAll: () => context.push('/offers')),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
@@ -177,7 +178,7 @@ class CouponTickets extends ConsumerWidget {
                   // signed out, the code would be dropped at sign-in (couponCodeProvider): copy it instead
                   if (ref.read(currentUserIdProvider) == null) return unawaited(copyCode(context, o.code!));
                   ref.read(couponCodeProvider.notifier).set(o.code);
-                  showMessage(context, '${o.code} applied. It comes off at checkout.');
+                  showMessage(context, tr('{code} applied. It comes off at checkout.', {'code': o.code}));
                 }),
             ],
           ),
@@ -200,10 +201,11 @@ class _Ticket extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     final left = timeLeft(offer.endsAt);
-    final min = offer.minSubtotalPaise > 0 ? 'On ${formatInr(offer.minSubtotalPaise)}+' : 'No minimum';
+    final min = offer.minSubtotalPaise > 0 ? tr('On {amt}+', {'amt': formatInr(offer.minSubtotalPaise)}) : tr('No minimum');
     return Semantics(
       button: true,
-      label: '${offerHeadline(offer)}, code ${offer.code}, ${applied ? 'applied' : 'tap to apply'}',
+      label: tr('{headline}, code {code}, {state}',
+          {'headline': offerHeadline(offer), 'code': offer.code, 'state': applied ? tr('applied') : tr('tap to apply')}),
       excludeSemantics: true,
       child: Pressable(
         child: GestureDetector(
@@ -249,7 +251,7 @@ class _Ticket extends StatelessWidget {
                             children: [
                               Icon(applied ? PhosphorIconsBold.checkCircle : PhosphorIconsBold.tag,
                                   size: IconSizes.sm, color: applied ? BrandColors.emerald : BrandColors.amber),
-                              Text(applied ? 'Applied' : 'Tap to apply',
+                              Text(applied ? tr('Applied') : tr('Tap to apply'),
                                   style: t.labelMedium?.copyWith(color: applied ? BrandColors.emerald : BrandColors.amber)),
                             ],
                           ),
@@ -335,7 +337,7 @@ class BudgetTiles extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(vertical: Space.md, horizontal: Space.xs),
                               child: Column(
                                 children: [
-                                  Text(kicker, style: t.labelSmall?.copyWith(color: tint.$2)),
+                                  Text(tr(kicker), style: t.labelSmall?.copyWith(color: tint.$2)),
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
                                     // big display numerals: the price is the headline
@@ -358,9 +360,9 @@ class BudgetTiles extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader('Shop by budget', gutter: Space.gutter),
-        row('Phones', _phones, (BrandColors.indigoMist, BrandColors.indigoInk), phoneCategory),
-        row('Accessories', _accessories, (BrandColors.plumMist, BrandColors.plumInk), null),
+        SectionHeader(tr('Shop by budget'), gutter: Space.gutter),
+        row(tr('Phones'), _phones, (BrandColors.indigoMist, BrandColors.indigoInk), phoneCategory),
+        row(tr('Accessories'), _accessories, (BrandColors.plumMist, BrandColors.plumInk), null),
       ],
     );
   }
@@ -381,9 +383,9 @@ class ServiceTiles extends StatelessWidget {
               Expanded(
                 child: _ServiceTile(
                   icon: PhosphorIconsFill.arrowsClockwise,
-                  title: 'Exchange',
-                  line: 'Old phone in, new one out. Get a price now.',
-                  action: 'Get estimate',
+                  title: tr('Exchange'),
+                  line: tr('Old phone in, new one out. Get a price now.'),
+                  action: tr('Get estimate'),
                   tint: (BrandColors.mint, BrandColors.mintInk),
                   onTap: () => showExchangeSheet(context),
                 ),
@@ -391,9 +393,9 @@ class ServiceTiles extends StatelessWidget {
               Expanded(
                 child: _ServiceTile(
                   icon: PhosphorIconsFill.wrench,
-                  title: 'Repair',
-                  line: 'Screen, battery, port. You approve the price first.',
-                  action: 'Book free',
+                  title: tr('Repair'),
+                  line: tr('Screen, battery, port. You approve the price first.'),
+                  action: tr('Book free'),
                   tint: (BrandColors.cream, BrandColors.creamInk),
                   onTap: () => context.push('/repairs/new'),
                 ),

@@ -27,17 +27,18 @@ import '../../offers/widgets/offer_widgets.dart';
 import '../../offers/widgets/pack_card.dart';
 import '../../catalog/screens/product_screen.dart' show leadLine;
 import '../data/cart.dart';
+import '../../../core/i18n.dart';
 
 /// Tag under a cart line. `blocking` matches `!CartLine.purchasable`: checkout waits until it's fixed.
 ({String text, bool blocking})? lineWarning(CartLine l) {
   final stock = l.variant.stock;
-  if (!l.productActive || !l.variant.isActive) return (text: 'No longer available', blocking: true);
+  if (!l.productActive || !l.variant.isActive) return (text: tr('No longer available'), blocking: true);
   if (l.variant.madeToOrder) {
-    return l.forModel == null ? (text: 'Tap to add your phone model', blocking: true) : null; // never "in stock"
+    return l.forModel == null ? (text: tr('Tap to add your phone model'), blocking: true) : null; // never "in stock"
   }
-  if (stock <= 0) return (text: 'Out of stock', blocking: true);
-  if (stock < l.qty) return (text: 'Only $stock left', blocking: true); // the minus button fixes it
-  if (stock <= 3) return (text: 'Only $stock left', blocking: false);
+  if (stock <= 0) return (text: tr('Out of stock'), blocking: true);
+  if (stock < l.qty) return (text: tr('Only {n} left', {'n': stock}), blocking: true); // the minus button fixes it
+  if (stock <= 3) return (text: tr('Only {n} left', {'n': stock}), blocking: false);
   return null;
 }
 
@@ -52,12 +53,12 @@ class CartScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (ref.watch(currentUserIdProvider) == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Cart')),
-        body: const SignInPrompt(
+        appBar: AppBar(title: Text(tr('Cart'))),
+        body: SignInPrompt(
           icon: PhosphorIconsRegular.shoppingBag,
           tone: Worlds.cart,
-          title: 'Sign in to see your cart',
-          message: 'Your cart is saved to your account.',
+          title: tr('Sign in to see your cart'),
+          message: tr('Your cart is saved to your account.'),
           from: '/cart',
         ),
       );
@@ -77,10 +78,10 @@ class CartScreen extends ConsumerWidget {
     final t = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
-        title: Text.rich(TextSpan(text: 'Cart', children: [
+        title: Text.rich(TextSpan(text: tr('Cart'), children: [
           if (count > 0)
             TextSpan(
-              text: ' · $count ${count == 1 ? 'item' : 'items'}',
+              text: ' · ${count == 1 ? tr('1 item') : tr('{n} items', {'n': count})}',
               style: t.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -119,9 +120,9 @@ class _CartList extends ConsumerWidget {
     }
     showMessageOn(
       messenger,
-      'Removed ${line.productName}',
+      tr('Removed {name}', {'name': line.productName}),
       action: SnackBarAction(
-        label: 'Undo',
+        label: tr('Undo'),
         onPressed: () => _report(messenger, container.read(cartProvider.notifier).add(line.variant, qty: line.qty)),
       ),
     );
@@ -162,7 +163,7 @@ class _CartList extends ConsumerWidget {
               onDismissed: (_) => _remove(context, line),
               child: Semantics(
                 customSemanticsActions: {
-                  const CustomSemanticsAction(label: 'Remove from cart'): () => _remove(context, line),
+                  CustomSemanticsAction(label: tr('Remove from cart')): () => _remove(context, line),
                 },
                 child: _LineTile(
                   line: line,
@@ -206,7 +207,7 @@ class _CartList extends ConsumerWidget {
                     ),
                   AsyncValue(:final error?) => Row(children: [
                       Expanded(child: Text(friendlyError(error), style: t.bodyMedium)),
-                      TextButton(onPressed: () => ref.invalidate(quoteProvider), child: const Text('Retry')),
+                      TextButton(onPressed: () => ref.invalidate(quoteProvider), child: Text(tr('Retry'))),
                     ]),
                   _ => const Skeletonizer(
                       child: TotalsRows(subtotalPaise: 7739700, deliveryFeePaise: 0, totalPaise: 7739700),
@@ -216,9 +217,9 @@ class _CartList extends ConsumerWidget {
             ),
           ),
           for (final (icon, text) in [
-            (PhosphorIconsRegular.sealCheck, 'No platform, COD or packing fees'),
+            (PhosphorIconsRegular.sealCheck, tr('No platform, COD or packing fees')),
             if (q != null && (settings?.codAllowedFor(q.totalPaise) ?? false))
-              (PhosphorIconsRegular.money, 'Cash on delivery available'),
+              (PhosphorIconsRegular.money, tr('Cash on delivery available')),
           ])
             Padding(
               padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
@@ -236,8 +237,8 @@ class _CartList extends ConsumerWidget {
               padding: const EdgeInsets.only(top: Space.md),
               child: ListTile(
                 leading: const WhatsAppIcon(),
-                title: const Text('Need help? Send this cart on WhatsApp'),
-                subtitle: const Text('We can answer questions or send you a payment link'),
+                title: Text(tr('Need help? Send this cart on WhatsApp')),
+                subtitle: Text(tr('We can answer questions or send you a payment link')),
                 trailing: Icon(PhosphorIconsRegular.caretRight, size: IconSizes.sm, color: c.onSurfaceVariant),
                 onTap: () => openUri(
                   context,
@@ -280,7 +281,7 @@ class _FreeDelivery extends StatelessWidget {
               const SizedBox(width: Space.sm),
               Expanded(
                 child: Text(
-                  gap > 0 ? 'Add ${formatInr(gap)} more for free delivery' : 'You get free delivery',
+                  gap > 0 ? tr('Add {amt} more for free delivery', {'amt': formatInr(gap)}) : tr('You get free delivery'),
                   style: t.bodyMedium?.copyWith(color: BrandColors.mintInk, fontWeight: FontWeight.w700),
                 ),
               ),
@@ -314,7 +315,7 @@ class YouSave extends StatelessWidget {
       : Padding(
           padding: const EdgeInsets.only(top: Space.xs),
           child: Text(
-            'You save ${formatInr(paise)} on this order',
+            tr('You save {amt} on this order', {'amt': formatInr(paise)}),
             textAlign: TextAlign.end,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(color: BrandColors.emerald, fontWeight: FontWeight.w700),
           ),
@@ -341,10 +342,10 @@ class _CrossSell extends ConsumerWidget {
     if (fits.isLoading && !fits.hasValue) return const SizedBox.shrink(); // decides which rail, so no flicker
     // the cart's one tinted band
     if (fits.value?.isNotEmpty ?? false) {
-      return ProductRail(title: 'Add a case or guard for ${top.productName}', band: sectionTints.fits, value: fits);
+      return ProductRail(title: tr('Add a case or guard for {name}', {'name': top.productName}), band: sectionTints.fits, value: fits);
     }
     return ProductRail(
-      title: 'Add-ons under ₹1,500',
+      title: tr('Add-ons under ₹1,500'),
       band: sectionTints.deals,
       value: ref.watch(homeProvider).whenData((h) => fresh(h.accessories)),
     );
@@ -361,23 +362,23 @@ class _EmptyCart extends ConsumerWidget {
           EmptyState(
             icon: PhosphorIconsRegular.shoppingBag,
             tone: Worlds.cart,
-            title: 'Your cart is empty',
-            message: 'Add a phone or accessory and it will wait here for you.',
+            title: tr('Your cart is empty'),
+            message: tr('Add a phone or accessory and it will wait here for you.'),
             action: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 FilledButton.icon(
                   onPressed: () => context.go('/search?category=smartphones'),
                   icon: const Icon(PhosphorIconsRegular.storefront),
-                  label: const Text('Shop phones'),
+                  label: Text(tr('Shop phones')),
                 ),
                 const SizedBox(height: Space.sm),
-                OutlinedButton(onPressed: () => context.push('/offers'), child: const Text('See offers')),
+                OutlinedButton(onPressed: () => context.push('/offers'), child: Text(tr('See offers'))),
               ],
             ),
           ),
-          ProductRail(title: 'Recently viewed', value: ref.watch(recentCardsProvider)),
-          ProductRail(title: 'Deals under ₹1,500', value: ref.watch(homeProvider).whenData((h) => h.accessories)),
+          ProductRail(title: tr('Recently viewed'), value: ref.watch(recentCardsProvider)),
+          ProductRail(title: tr('Deals under ₹1,500'), value: ref.watch(homeProvider).whenData((h) => h.accessories)),
           const SizedBox(height: Space.xl),
         ],
       );
@@ -416,7 +417,7 @@ class _LineTile extends StatelessWidget {
                     if (line.variant.name.isNotEmpty)
                       Text(line.variant.name, style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
                     if (line.forModel != null) ...[
-                      Text('For: ${line.forModel}', style: t.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
+                      Text(tr('For: {model}', {'model': line.forModel}), style: t.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
                       Text(leadLine(line.variant.leadDays), style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
                     ],
                     if (warning != null)
@@ -451,7 +452,7 @@ class _LineTile extends StatelessWidget {
                       Align(
                         alignment: AlignmentDirectional.centerEnd,
                         child: Tooltip(
-                          message: 'Remove ${line.productName} from the cart',
+                          message: tr('Remove {name} from the cart', {'name': line.productName}),
                           child: TextButton.icon(
                             onPressed: onRemove,
                             style: TextButton.styleFrom(
@@ -459,7 +460,7 @@ class _LineTile extends StatelessWidget {
                               foregroundColor: c.onSurfaceVariant,
                             ),
                             icon: const Icon(PhosphorIconsRegular.trash, size: 18),
-                            label: const Text('Remove'),
+                            label: Text(tr('Remove')),
                           ),
                         ),
                       ),
@@ -493,7 +494,7 @@ class _CheckoutBar extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: Space.sm),
                   child: Text(
-                    'Remove or update the marked items to check out.',
+                    tr('Remove or update the marked items to check out.'),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(color: c.error),
                     textAlign: TextAlign.center,
                   ),
@@ -505,8 +506,8 @@ class _CheckoutBar extends ConsumerWidget {
                   children: [
                     Flexible(
                       child: total == null
-                          ? const Text('Checkout')
-                          : CountTo(total, format: (p) => 'Checkout · ${formatInr(p)}'), // rolls with the total
+                          ? Text(tr('Checkout'))
+                          : CountTo(total, format: (p) => tr('Checkout · {amt}', {'amt': formatInr(p)})), // rolls with the total
                     ),
                     const SizedBox(width: Space.sm),
                     const Icon(PhosphorIconsBold.arrowRight, size: 18),

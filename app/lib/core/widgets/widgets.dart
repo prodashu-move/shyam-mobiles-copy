@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../errors.dart';
 import '../format.dart';
+import '../i18n.dart';
 import '../network.dart';
 import '../supabase.dart';
 import '../theme/tokens.dart';
@@ -168,7 +169,7 @@ class PriceTag extends StatelessWidget {
     final mrp = off > 0
         ? Text(
             formatInr(mrpPaise!),
-            semanticsLabel: 'MRP ${formatInr(mrpPaise!)}',
+            semanticsLabel: tr('MRP {amount}', {'amount': formatInr(mrpPaise!)}),
             style: t.bodySmall?.copyWith(
               color: c.onSurfaceVariant,
               decoration: TextDecoration.lineThrough,
@@ -197,7 +198,7 @@ class PriceTag extends StatelessWidget {
                 : FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
-                    child: Row(children: [mrp, const SizedBox(width: 6), Text('$off% off', style: offStyle)]),
+                    child: Row(children: [mrp, const SizedBox(width: 6), Text(tr('{off}% off', {'off': off}), style: offStyle)]),
                   ),
           ),
         ],
@@ -212,7 +213,7 @@ class PriceTag extends StatelessWidget {
           CountTo(pricePaise, style: t.headlineSmall?.copyWith(fontWeight: FontWeight.w800))
         else
           Text(formatInr(pricePaise), style: t.titleMedium?.copyWith(fontWeight: FontWeight.w800, fontFeatures: tabular)),
-        if (mrp != null) ...[mrp, if (!showSaving) Text('$off% off', style: offStyle)],
+        if (mrp != null) ...[mrp, if (!showSaving) Text(tr('{off}% off', {'off': off}), style: offStyle)],
       ],
     );
     if (!showSaving || mrp == null) return tag;
@@ -223,7 +224,7 @@ class PriceTag extends StatelessWidget {
         tag,
         const SizedBox(height: 2),
         Text(
-          'You save ${formatInr(mrpPaise! - pricePaise)} ($off%)',
+          tr('You save {amount} ({off}%)', {'amount': formatInr(mrpPaise! - pricePaise), 'off': off}),
           style: t.labelLarge?.copyWith(color: BrandColors.emerald, fontWeight: FontWeight.w700),
         ),
       ],
@@ -311,7 +312,7 @@ class ErrorView extends StatelessWidget {
         icon: PhosphorIconsRegular.cloudX,
         // grey, not red: no signal is not something the customer did wrong
         tone: (Theme.of(context).colorScheme.surfaceContainerHigh, BrandColors.graphite),
-        title: 'Couldn’t load this',
+        title: tr('Couldn’t load this'),
         message: friendlyError(error),
         action: isSessionError(error)
             ? FilledButton(
@@ -322,14 +323,14 @@ class ErrorView extends StatelessWidget {
                   await auth.signOut(scope: SignOutScope.local).catchError((Object _) {});
                   onRetry?.call();
                 },
-                child: const Text('Sign in again'),
+                child: Text(tr('Sign in again')),
               )
             : onRetry == null
                 ? null
                 : OutlinedButton.icon(
                     onPressed: onRetry,
                     icon: const Icon(PhosphorIconsRegular.arrowClockwise),
-                    label: const Text('Try again'),
+                    label: Text(tr('Try again')),
                   ),
       );
 }
@@ -359,7 +360,7 @@ class SignInPrompt extends StatelessWidget {
         message: message,
         action: FilledButton(
           onPressed: () => context.push('/sign-in?from=${Uri.encodeComponent(from)}'),
-          child: const Text('Sign in'),
+          child: Text(tr('Sign in')),
         ),
       );
 }
@@ -443,18 +444,18 @@ class QtyStepper extends StatelessWidget {
         children: [
           if (value <= min && onRemove != null)
             IconButton(
-              tooltip: 'Remove',
+              tooltip: tr('Remove'),
               onPressed: onRemove,
               icon: const Icon(PhosphorIconsRegular.trash, size: 18),
             )
           else
             IconButton(
-              tooltip: 'Decrease quantity',
+              tooltip: tr('Decrease quantity'),
               onPressed: value > min ? () => onChanged(value - 1) : null,
               icon: const Icon(PhosphorIconsRegular.minus, size: 18),
             ),
           Semantics(
-            label: 'Quantity $value',
+            label: tr('Quantity {n}', {'n': value}),
             excludeSemantics: true,
             child: SizedBox(
               width: 24,
@@ -462,7 +463,7 @@ class QtyStepper extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Increase quantity',
+            tooltip: tr('Increase quantity'),
             onPressed: value < max ? () => onChanged(value + 1) : null,
             icon: const Icon(PhosphorIconsRegular.plus, size: 18),
           ),
@@ -532,7 +533,7 @@ class SectionHeader extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: Space.md),
                 ),
                 icon: const Icon(PhosphorIconsBold.caretRight, size: 14),
-                label: Text(actionLabel ?? 'See all'),
+                label: Text(actionLabel ?? tr('See all')),
               ),
           ],
         ),

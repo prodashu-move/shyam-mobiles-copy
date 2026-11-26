@@ -3,6 +3,7 @@ import 'dart:math';
 import '../../../core/format.dart';
 import '../../../core/models/models.dart';
 import '../../reviews/data/reviews.dart' show ratingLabel;
+import '../../../core/i18n.dart';
 
 /// Home's automatic banners, after the owner's own: each is on or off in Admin → Banners (store_settings.auto_banners,
 /// settings/store autoBanners). Off by default: Repairs, until the shop promises same-day repairs.
@@ -111,17 +112,18 @@ List<HeroItem> heroFan(HeroFan kind, Iterable<ProductCard> pool) {
 String heroCta(String label) {
   const skip = {'a', 'an', 'the', 'your', 'my'};
   final words = [for (final w in label.trim().split(RegExp(r'\s+'))) if (w.isNotEmpty && !skip.contains(w.toLowerCase())) w];
-  return words.isEmpty ? 'Shop now' : words.take(2).join(' ');
+  if (label.codeUnits.any((u) => u > 127)) return label; // Hindi: already short, and its words are not articles
+  return words.isEmpty ? tr('Shop now') : words.take(2).join(' ');
 }
 
 /// What a screen reader says for the time left: "ends in 10 days", "ends in 7 hours", "ends in 9 minutes"; null once over.
 String? spokenLeft(DateTime endsAt, {DateTime? now}) {
   final left = endsAt.difference(now ?? DateTime.now());
   if (left <= Duration.zero) return null;
-  String n(int v, String unit) => '$v $unit${v == 1 ? '' : 's'}';
-  if (left.inDays > 0) return 'ends in ${n(left.inDays, 'day')}';
-  if (left.inHours > 0) return 'ends in ${n(left.inHours, 'hour')}';
-  return 'ends in ${n(max(1, left.inMinutes), 'minute')}';
+  if (left.inDays > 0) return left.inDays == 1 ? tr('ends in 1 day') : tr('ends in {n} days', {'n': left.inDays});
+  if (left.inHours > 0) return left.inHours == 1 ? tr('ends in 1 hour') : tr('ends in {n} hours', {'n': left.inHours});
+  final m = max(1, left.inMinutes);
+  return m == 1 ? tr('ends in 1 minute') : tr('ends in {n} minutes', {'n': m});
 }
 
 /// "Offer: Festive phone sale, ends in 10 days, Shop now": one label per slide.

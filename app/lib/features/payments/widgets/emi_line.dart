@@ -6,6 +6,7 @@ import '../../../core/format.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/widgets.dart';
 import '../data/emi.dart';
+import '../../../core/i18n.dart';
 
 /// "EMI from ₹2,083/month · No-cost EMI available" under a price; tap for every bank and tenure. Takes no space while
 /// the plans load, when they fail, when EMI isn't on for the shop, or when [pricePaise] is below every bank's minimum.
@@ -36,11 +37,11 @@ class EmiLine extends ConsumerWidget {
                 child: Text.rich(
                   TextSpan(children: [
                     TextSpan(
-                      text: 'EMI from ${formatInr(offer.monthlyPaise)}/month',
+                      text: tr('EMI from {amt}/month', {'amt': formatInr(offer.monthlyPaise)}),
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                     if (offer.noCost)
-                      TextSpan(text: ' · No-cost EMI available', style: TextStyle(color: c.secondary, fontWeight: FontWeight.w700)),
+                      TextSpan(text: ' · ${tr('No-cost EMI available')}', style: TextStyle(color: c.secondary, fontWeight: FontWeight.w700)),
                   ]),
                   style: t.bodyMedium,
                 ),
@@ -84,11 +85,11 @@ class _EmiSheet extends StatelessWidget {
         shrinkWrap: true,
         padding: EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.xl + MediaQuery.paddingOf(context).bottom),
         children: [
-          Semantics(header: true, child: Text('EMI on ${formatInr(pricePaise)}', style: t.titleLarge)),
+          Semantics(header: true, child: Text(tr('EMI on {amt}', {'amt': formatInr(pricePaise)}), style: t.titleLarge)),
           const SizedBox(height: Space.xs),
           Text(
-            'Pick EMI on the payment screen at checkout, with a credit card from one of these banks. Banks add GST on '
-            'the interest. No-cost EMI: the interest comes off the price, so you pay ${formatInr(pricePaise)} in all.',
+            '${tr('Pick EMI on the payment screen at checkout, with a credit card from one of these banks. Banks add GST on the interest.')} '
+            '${tr('No-cost EMI: the interest comes off the price, so you pay {amt} in all.', {'amt': formatInr(pricePaise)})}',
             style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
           ),
           for (final MapEntry(key: bank, value: list) in banks.entries) ...[
@@ -99,9 +100,9 @@ class _EmiSheet extends StatelessWidget {
                 padding: const EdgeInsets.only(top: Space.sm),
                 child: Row(
                   children: [
-                    Expanded(child: Text('${p.months} months', style: t.bodyMedium)),
+                    Expanded(child: Text(tr('{n} months', {'n': p.months}), style: t.bodyMedium)),
                     Text(
-                      '${formatInr(p.monthlyPaise(pricePaise))}/mo',
+                      tr('{amt}/mo', {'amt': formatInr(p.monthlyPaise(pricePaise))}),
                       style: t.bodyMedium?.copyWith(fontWeight: FontWeight.w700, fontFeatures: const [FontFeature.tabularFigures()]),
                     ),
                     const SizedBox(width: Space.sm),
@@ -110,8 +111,8 @@ class _EmiSheet extends StatelessWidget {
                       child: Align(
                         alignment: AlignmentDirectional.centerEnd,
                         child: p.noCost
-                            ? const Tag('No-cost', tone: TagTone.ok)
-                            : Text('${_rate(p.rate)}% a year', style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
+                            ? Tag(tr('No-cost'), tone: TagTone.ok)
+                            : Text(tr('{rate}% a year', {'rate': _rate(p.rate)}), style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
                       ),
                     ),
                   ],

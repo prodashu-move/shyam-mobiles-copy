@@ -6,6 +6,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../core/errors.dart';
 import '../../../core/format.dart';
+import '../../../core/i18n.dart';
 import '../../../core/models/models.dart';
 import '../../../core/supabase.dart';
 import '../../../core/theme/tokens.dart';
@@ -38,9 +39,9 @@ class StoreCard extends ConsumerWidget {
       return Card(
         child: ListTile(
           leading: const Icon(PhosphorIconsRegular.cloudX),
-          title: const Text('Couldn’t load the shop’s details'),
+          title: Text(tr('Couldn’t load the shop’s details')),
           subtitle: Text(friendlyError(settings.error!)),
-          trailing: TextButton(onPressed: () => ref.invalidate(storeSettingsProvider), child: const Text('Retry')),
+          trailing: TextButton(onPressed: () => ref.invalidate(storeSettingsProvider), child: Text(tr('Retry'))),
         ),
       );
     }
@@ -55,26 +56,26 @@ class StoreCard extends ConsumerWidget {
             _StoreHero(settings: s, onReviews: s.mapsListingUri == null ? null : () => openUri(context, s.mapsListingUri!)),
             ListTile(
               leading: const Icon(PhosphorIconsRegular.phone),
-              title: const Text('Call shop'),
+              title: Text(tr('Call shop')),
               subtitle: Text(displayPhone(phone)),
               onTap: () => openUri(context, telUri(phone)),
             ),
             if (s.mapsDestination.isNotEmpty)
               ListTile(
                 leading: const Icon(PhosphorIconsRegular.navigationArrow),
-                title: const Text('Directions'),
-                subtitle: const Text('Open in Google Maps'),
+                title: Text(tr('Directions')),
+                subtitle: Text(tr('Open in Google Maps')),
                 onTap: () => openUri(context, directionsUri(s.mapsDestination)),
               ),
             ListTile(
               leading: const WhatsAppIcon(),
-              title: const Text('WhatsApp the shop'),
+              title: Text(tr('WhatsApp the shop')),
               onTap: () => openUri(context, whatsAppUri(phone, text: whatsAppText)),
             ),
             FollowButtons(s),
             ListTile(
               leading: const Icon(PhosphorIconsRegular.shieldCheck),
-              title: const Text('Returns & warranty'),
+              title: Text(tr('Returns & warranty')),
               onTap: () => showReturnsSheet(context, s),
             ),
             const SizedBox(height: Space.sm),
@@ -118,7 +119,7 @@ class _StoreHero extends StatelessWidget {
           else
             Semantics(
               button: true,
-              label: 'Photos of the shop, ${photos.length}',
+              label: tr('Photos of the shop, {n}', {'n': photos.length}),
               child: GestureDetector(
                 onTap: () => openStorePhotoViewer(context, photos, 0),
                 child: LayoutBuilder(
@@ -154,7 +155,7 @@ class _StoreHero extends StatelessWidget {
                 children: [
                   Text('Shyam Mobiles', style: t.displaySmall?.copyWith(fontSize: 22, color: Colors.white)),
                   if (settings.storeHours.isNotEmpty)
-                    Text('Open ${settings.storeHours}', style: t.bodySmall?.copyWith(color: Colors.white)),
+                    Text(tr('Open {hours}', {'hours': settings.storeHours}), style: t.bodySmall?.copyWith(color: Colors.white)),
                   if (settings.storeAddress.isNotEmpty)
                     Text(settings.storeAddress,
                         maxLines: 2,
@@ -171,11 +172,11 @@ class _StoreHero extends StatelessWidget {
               child: ActionChip(
                 onPressed: onReviews,
                 avatar: const Icon(PhosphorIconsBold.star, size: 14, color: Colors.white),
-                label: const Text('Google reviews'),
+                label: Text(tr('Google reviews')),
                 labelStyle: t.labelSmall?.copyWith(color: Colors.white),
                 backgroundColor: Colors.black.withValues(alpha: 0.45),
                 side: BorderSide.none,
-                tooltip: 'Open Shyam Mobile Center on Google Maps',
+                tooltip: tr('Open Shyam Mobile Center on Google Maps'),
               ),
             ),
           if (photos.length > 1)

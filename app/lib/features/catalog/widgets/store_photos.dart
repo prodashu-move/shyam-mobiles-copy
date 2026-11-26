@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/supabase.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../../core/i18n.dart';
 
 /// Swipeable 16:9 shop photos with page dots; a tap opens them full screen. Never auto-advances.
 class StorePhotoCarousel extends StatefulWidget {
@@ -31,7 +32,7 @@ class _StorePhotoCarouselState extends State<StorePhotoCarousel> {
             onPageChanged: (i) => setState(() => _index = i),
             itemBuilder: (context, i) => Semantics(
               button: true,
-              label: 'Photo of the shop, ${i + 1} of $n',
+              label: tr('Photo of the shop, {i} of {n}', {'i': i + 1, 'n': n}),
               child: GestureDetector(
                 onTap: () => openStorePhotoViewer(context, widget.paths, i),
                 child: ProductImage(widget.paths[i], aspectRatio: 16 / 9, radius: 0, padding: 0, fit: BoxFit.cover),
@@ -134,11 +135,11 @@ class _ViewerState extends State<_Viewer> {
         foregroundColor: c.surface,
         automaticallyImplyLeading: false,
         leading: IconButton(
-          tooltip: 'Close',
+          tooltip: tr('Close'),
           icon: const Icon(PhosphorIconsBold.x),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('${_index + 1} of $n'),
+        title: Text(tr('{i} of {n}', {'i': _index + 1, 'n': n})),
       ),
       // buttons as well as the swipe: no action is gesture-only
       bottomNavigationBar: n < 2
@@ -148,13 +149,13 @@ class _ViewerState extends State<_Viewer> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    tooltip: 'Previous photo',
+                    tooltip: tr('Previous photo'),
                     color: c.surface,
                     onPressed: _index == 0 ? null : () => _go(_index - 1),
                     icon: const Icon(PhosphorIconsBold.caretLeft),
                   ),
                   IconButton(
-                    tooltip: 'Next photo',
+                    tooltip: tr('Next photo'),
                     color: c.surface,
                     onPressed: _index == n - 1 ? null : () => _go(_index + 1),
                     icon: const Icon(PhosphorIconsBold.caretRight),
@@ -168,7 +169,7 @@ class _ViewerState extends State<_Viewer> {
         onPageChanged: (i) => setState(() => _index = i),
         itemBuilder: (context, i) => Semantics(
           image: true,
-          label: 'Photo of the shop, ${i + 1} of $n',
+          label: tr('Photo of the shop, {i} of {n}', {'i': i + 1, 'n': n}),
           child: LayoutBuilder(
             builder: (context, box) => CachedNetworkImage(
               imageUrl: publicImageUrl(widget.paths[i]),

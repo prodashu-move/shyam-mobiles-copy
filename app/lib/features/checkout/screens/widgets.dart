@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/format.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/motion.dart';
+import '../../../core/i18n.dart';
 
 const tabularFigures = [FontFeature.tabularFigures()];
 
@@ -49,32 +50,32 @@ class TotalsRows extends StatelessWidget {
     final saving = t.bodyMedium?.copyWith(color: c.secondary, fontWeight: FontWeight.w700, fontFeatures: tabularFigures);
     return Column(
       children: [
-        row('Subtotal', money(subtotalPaise)),
+        row(tr('Subtotal'), money(subtotalPaise)),
         if (discountPaise > 0 || discountLabel != null)
           row(
             discountLabel == null
-                ? 'Discount'
+                ? tr('Discount')
                 : discountLabel!.startsWith('Pack saving')
                     ? discountLabel!
-                    : '${discountPaise > 0 ? 'Discount' : 'Offer'} · $discountLabel',
+                    : '${discountPaise > 0 ? tr('Discount') : tr('Offer')} · $discountLabel',
             discountPaise > 0
                 ? CountTo(
                     discountPaise,
                     format: (p) => '−${formatInr(p)}',
-                    semanticsLabel: 'minus ${formatInr(discountPaise)}',
+                    semanticsLabel: tr('minus {amt}', {'amt': formatInr(discountPaise)}),
                     fromZero: true,
                     style: saving,
                   )
-                : Text('Free delivery', style: saving),
+                : Text(tr('Free delivery'), style: saving),
           ),
         row(
-          'Delivery',
+          tr('Delivery'),
           deliveryFeePaise == 0
-              ? Text('Free', style: t.bodyMedium?.copyWith(color: c.secondary, fontWeight: FontWeight.w700))
+              ? Text(tr('Free'), style: t.bodyMedium?.copyWith(color: c.secondary, fontWeight: FontWeight.w700))
               : money(deliveryFeePaise),
         ),
         const Padding(padding: EdgeInsets.symmetric(vertical: Space.xs), child: Divider()),
-        row(totalLabel, money(totalPaise, total: true), total: true),
+        row(tr(totalLabel), money(totalPaise, total: true), total: true),
       ],
     );
   }

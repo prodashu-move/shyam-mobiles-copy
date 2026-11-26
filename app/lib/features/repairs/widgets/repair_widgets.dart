@@ -7,6 +7,7 @@ import '../../../core/input.dart';
 import '../../../core/models/models.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../../core/i18n.dart';
 
 TagTone repairTone(RepairStatus s) => switch (s) {
       RepairStatus.requested => TagTone.repair,
@@ -74,7 +75,7 @@ class IssueGrid extends StatelessWidget {
                                 Icon(issueIcons[issue], size: IconSizes.lg, color: on ? fg : BrandColors.saffron),
                                 const SizedBox(height: Space.xs),
                                 Text(
-                                  issue.label,
+                                  tr(issue.label),
                                   textAlign: TextAlign.center,
                                   style: t.labelSmall?.copyWith(color: fg, height: 1.15),
                                 ),
@@ -95,7 +96,7 @@ class IssueGrid extends StatelessWidget {
 }
 
 /// "Thu 30 Oct · Afternoon"
-String repairWhen(RepairBooking b) => '${DateFormat('EEE d MMM').format(b.preferredDate)} · ${b.slot.label}';
+String repairWhen(RepairBooking b) => '${DateFormat('EEE d MMM').format(b.preferredDate)} · ${tr(b.slot.label)}';
 
 /// Mockup chip: outlined, indigo-tinted when selected, 48dp tap target.
 class PickChip extends StatelessWidget {
@@ -190,13 +191,13 @@ class RepairCard extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(b.number, style: t.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
-                        Tag(b.status.label, tone: repairTone(b.status)),
-                        if (b.awaitingApproval) const Tag('Awaiting approval', tone: TagTone.deal),
-                        if (b.quoteDeclined) const Tag('Quote declined', tone: TagTone.neutral),
+                        Tag(tr(b.status.label), tone: repairTone(b.status)),
+                        if (b.awaitingApproval) Tag(tr('Awaiting approval'), tone: TagTone.deal),
+                        if (b.quoteDeclined) Tag(tr('Quote declined'), tone: TagTone.neutral),
                       ],
                     ),
                     const SizedBox(height: Space.xs),
-                    Text('${b.deviceBrand} ${b.deviceModel} · ${b.issue.label}', style: t.bodyMedium),
+                    Text('${b.deviceBrand} ${b.deviceModel} · ${tr(b.issue.label)}', style: t.bodyMedium),
                     Text(
                       [repairWhen(b), if (showPhone) displayPhone(b.contactPhone)].join(' · '),
                       style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
@@ -209,7 +210,7 @@ class RepairCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Quote', style: t.labelSmall?.copyWith(color: c.onSurfaceVariant)),
+                    Text(tr('Quote'), style: t.labelSmall?.copyWith(color: c.onSurfaceVariant)),
                     Text(
                       formatInr(b.quotePaise!),
                       style: t.titleSmall?.copyWith(
@@ -230,10 +231,10 @@ class RepairCard extends StatelessWidget {
 
 /// Title of a timeline entry: the quote event, the new status, or "Note" when the status didn't change.
 String repairEventTitle(RepairEvent e, RepairEvent? before) => switch (e.quoteStatus) {
-      RepairQuoteStatus.pending => 'Quote sent · ${formatInr(e.quotePaise!)}',
-      RepairQuoteStatus.approved => 'Quote approved · ${formatInr(e.quotePaise!)}',
-      RepairQuoteStatus.declined => 'Quote declined · ${formatInr(e.quotePaise!)}',
-      _ => before == null || before.status != e.status ? e.status.label : 'Note from the shop',
+      RepairQuoteStatus.pending => tr('Quote sent · {v}', {'v': formatInr(e.quotePaise!)}),
+      RepairQuoteStatus.approved => tr('Quote approved · {v}', {'v': formatInr(e.quotePaise!)}),
+      RepairQuoteStatus.declined => tr('Quote declined · {v}', {'v': formatInr(e.quotePaise!)}),
+      _ => before == null || before.status != e.status ? tr(e.status.label) : tr('Note from the shop'),
     };
 
 /// A destructive choice with a reason (decline a quote, cancel a booking): quiet red [action] on the left, the safe
@@ -313,8 +314,8 @@ class _ReasonDialogState extends State<_ReasonDialog> {
             inputFormatters: textInput(widget.maxLength),
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
-              labelText: widget.label,
-              errorText: _tried && missing() ? 'Add a short reason.' : null,
+              labelText: tr(widget.label),
+              errorText: _tried && missing() ? tr('Add a short reason.') : null,
             ),
             onChanged: (_) => setState(() {}),
           ),

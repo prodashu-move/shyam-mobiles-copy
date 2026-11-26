@@ -6,6 +6,7 @@ import '../../../core/format.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/widgets.dart';
 import '../data/payments.dart';
+import '../../../core/i18n.dart';
 
 /// The customer's view of refunds on their order: how much, for what, and where it is. Nothing when there are none.
 class OrderRefunds extends ConsumerWidget {
@@ -28,13 +29,13 @@ class OrderRefunds extends ConsumerWidget {
             for (final r in refunds.reversed)
               ListTile(
                 leading: Icon(PhosphorIconsRegular.arrowCounterClockwise, color: c.secondary),
-                title: Text('Refund of ${formatInr(r.amountPaise)}${r.full || r.items.isEmpty ? '' : ' for ${r.items.join(', ')}'}'),
+                title: Text(r.full || r.items.isEmpty ? tr('Refund of {amt}', {'amt': formatInr(r.amountPaise)}) : tr('Refund of {amt} for {items}', {'amt': formatInr(r.amountPaise), 'items': r.items.join(', ')})),
                 subtitle: Text(
                   switch (r.status) {
-                    RefundStatus.processed when r.speedProcessed == 'instant' => 'Sent instantly on ${formatDate(r.createdAt)}.',
-                    RefundStatus.processed => 'Sent to your original payment method. Banks usually take 5–7 working days.',
-                    RefundStatus.pending => 'On its way to your original payment method.',
-                    RefundStatus.failed => 'This refund didn’t go through. The shop will sort it out with you.',
+                    RefundStatus.processed when r.speedProcessed == 'instant' => tr('Sent instantly on {date}.', {'date': formatDate(r.createdAt)}),
+                    RefundStatus.processed => tr('Sent to your original payment method. Banks usually take 5–7 working days.'),
+                    RefundStatus.pending => tr('On its way to your original payment method.'),
+                    RefundStatus.failed => tr('This refund didn’t go through. The shop will sort it out with you.'),
                   },
                   style: t.bodySmall,
                 ),

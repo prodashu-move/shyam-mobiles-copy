@@ -14,6 +14,7 @@ import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../reviews/widgets/review_widgets.dart' show TileRatingBadge;
 import '../../wishlist/data/wishlist.dart';
+import '../../../core/i18n.dart';
 
 /// "Samsung Galaxy S25" → "Galaxy S25". Names start with the brand (schema convention). Only for matching "Fits"
 /// specs: everywhere a customer reads a name, it's the full one ("OnePlus 13", never "13").
@@ -75,7 +76,7 @@ class ProductTile extends StatelessWidget {
             children: [
               card.inStock ? photo : Opacity(opacity: 0.45, child: photo),
               if (!card.inStock)
-                const Positioned(left: Space.sm, top: Space.sm, child: Tag('Out of stock', tone: TagTone.neutral)),
+                Positioned(left: Space.sm, top: Space.sm, child: Tag(tr('Out of stock'), tone: TagTone.neutral)),
               Positioned(top: 0, right: 0, child: HeartButton(card.id, waitFor: card.inStock ? null : '*')),
               Positioned(left: Space.sm, bottom: Space.sm, child: TileRatingBadge(card.id)),
             ],
@@ -160,7 +161,7 @@ class HeartButton extends ConsumerWidget {
     final c = Theme.of(context).colorScheme;
     final saved = ref.watch(wishlistProvider.select((s) => s.value?.contains(productId) ?? false));
     return IconButton(
-      tooltip: saved ? 'Remove from wishlist' : 'Save to wishlist',
+      tooltip: saved ? tr('Remove from wishlist') : tr('Save to wishlist'),
       onPressed: () => _toggle(context, ref),
       icon: DecoratedBox(
         decoration: BoxDecoration(color: c.surface, shape: BoxShape.circle),

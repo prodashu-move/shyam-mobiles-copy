@@ -16,6 +16,7 @@ import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/data/variant_options.dart';
 import '../../catalog/screens/product_screen.dart' show leadLine;
 import '../data/packs.dart';
+import '../../../core/i18n.dart';
 
 /// "Complete your pack": the phone and one fitting item per type the pack asks for, each swappable, the pack price
 /// and what the pack saves. Nothing is added until "Add pack to cart" (no pre-ticked or auto-added items).
@@ -54,7 +55,7 @@ class _CompletePackCardState extends ConsumerState<CompletePackCard> {
             for (final c in choices)
               ListTile(
                 title: Text(c.card.name),
-                subtitle: Text(c.forModel == null ? 'In stock' : leadLine(c.card.leadDays ?? 2)),
+                subtitle: Text(c.forModel == null ? tr('In stock') : leadLine(c.card.leadDays ?? 2)),
                 trailing: Text(formatInr(c.card.minPricePaise)),
                 selected: c.card.id == _items[i].card.id,
                 onTap: () => Navigator.pop(context, c),
@@ -77,15 +78,15 @@ class _CompletePackCardState extends ConsumerState<CompletePackCard> {
         if (widget.inCart.contains(item.card.id)) continue;
         final variants = (await repo.product(item.card.slug))?.activeVariants ?? const <Variant>[];
         final v = item.forModel != null ? variants.where((v) => v.madeToOrder).firstOrNull : initialVariant(variants);
-        if (v == null || !v.inStock) throw const FormatException('Something in this pack just sold out. Pick another.');
+        if (v == null || !v.inStock) throw FormatException(tr('Something in this pack just sold out. Pick another.'));
         await cart.add(v, forModel: item.forModel);
       }
       unawaited(HapticFeedback.mediumImpact());
       if (mounted) {
         showMessage(
           context,
-          'Pack added to cart',
-          action: SnackBarAction(label: 'View cart', onPressed: () => router.push('/bag')),
+          tr('Pack added to cart'),
+          action: SnackBarAction(label: tr('View cart'), onPressed: () => router.push('/bag')),
         );
       }
     } catch (e) {
@@ -120,7 +121,7 @@ class _CompletePackCardState extends ConsumerState<CompletePackCard> {
               ),
               Text(formatInr(paise), style: t.titleSmall),
               if (onChange != null)
-                TextButton(onPressed: onChange, child: const Text('Change'))
+                TextButton(onPressed: onChange, child: Text(tr('Change')))
               else
                 const SizedBox(width: Space.sm),
             ],
@@ -139,29 +140,29 @@ class _CompletePackCardState extends ConsumerState<CompletePackCard> {
               children: [
                 const Icon(PhosphorIconsRegular.package, color: BrandColors.peacockInk),
                 Expanded(
-                  child: Text('Complete your pack', style: t.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                  child: Text(tr('Complete your pack'), style: t.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
                 ),
               ],
             ),
             Text(
-              '${pack.offer.title}: ${pack.offer.percent}% off ${pack.offer.whole ? 'the whole pack' : 'the accessories'} '
-              'when you buy them together.',
+              tr(pack.offer.whole ? '{title}: {p}% off the whole pack when you buy them together.' : '{title}: {p}% off the accessories when you buy them together.',
+                  {'title': pack.offer.title, 'p': pack.offer.percent}),
               style: muted,
             ),
             const Divider(),
             row(
               title: pack.phone.name,
-              subtitle: widget.inCart.contains(pack.phone.id) ? 'In your cart' : 'This phone',
+              subtitle: tr(widget.inCart.contains(pack.phone.id) ? 'In your cart' : 'This phone'),
               paise: phonePaise,
             ),
             for (final (i, item) in _items.indexed)
               row(
                 title: item.card.name,
                 subtitle: [
-                  item.type.label,
-                  if (widget.inCart.contains(item.card.id)) 'In your cart',
+                  tr(item.type.label),
+                  if (widget.inCart.contains(item.card.id)) tr('In your cart'),
                   if (item.forModel != null)
-                    'For ${item.forModel} · ${leadLine(item.card.leadDays ?? 2).toLowerCase()}',
+                    tr('For {model} · {lead}', {'model': item.forModel, 'lead': leadLine(item.card.leadDays ?? 2).toLowerCase()}),
                 ].join(' · '),
                 paise: item.card.minPricePaise,
                 onChange: pack.choices[item.type]!.length > 1 ? () => _swap(i) : null,
@@ -169,7 +170,7 @@ class _CompletePackCardState extends ConsumerState<CompletePackCard> {
             const Divider(),
             Row(
               children: [
-                Expanded(child: Text('Pack price', style: t.titleSmall)),
+                Expanded(child: Text(tr('Pack price'), style: t.titleSmall)),
                 Text(
                   formatInr(phonePaise + accessories - saving),
                   style: t.titleMedium?.copyWith(fontWeight: FontWeight.w800),
@@ -179,16 +180,16 @@ class _CompletePackCardState extends ConsumerState<CompletePackCard> {
             if (saving > 0)
               Align(
                 alignment: Alignment.centerRight,
-                child: Tag('Save ${pack.offer.percent}% (${formatInr(saving)})', tone: TagTone.deal),
+                child: Tag(tr('Save {p}% ({v})', {'p': pack.offer.percent, 'v': formatInr(saving)}), tone: TagTone.deal),
               ),
             const SizedBox(height: Space.sm),
             FilledButton.icon(
               onPressed: _busy ? null : _add,
               icon: const Icon(PhosphorIconsRegular.shoppingBagOpen),
-              label: const Text('Add pack to cart'),
+              label: Text(tr('Add pack to cart')),
             ),
             Text(
-              'The final price is worked out at checkout. One offer per order: you always get the bigger saving.',
+              tr('The final price is worked out at checkout. One offer per order: you always get the bigger saving.'),
               style: muted,
               textAlign: TextAlign.center,
             ),

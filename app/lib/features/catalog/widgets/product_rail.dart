@@ -8,6 +8,7 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/widgets.dart';
 import '../data/rails.dart';
 import 'product_tile.dart';
+import '../../../core/i18n.dart';
 
 const _tileWidth = 132.0; // two and a peek show at 360 dp, in a panel too (the peek says there's more)
 
@@ -89,6 +90,6 @@ class RecentlyViewedRail extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if ((ref.watch(recentlyViewedProvider).value?.length ?? 0) < 2) return const SizedBox.shrink();
-    return ProductRail(title: 'Recently viewed', band: sectionTints.recent, value: ref.watch(recentCardsProvider));
+    return ProductRail(title: tr('Recently viewed'), band: sectionTints.recent, value: ref.watch(recentCardsProvider));
   }
 }

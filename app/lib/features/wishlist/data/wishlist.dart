@@ -6,6 +6,7 @@ import '../../../core/paging.dart';
 import '../../../core/supabase.dart';
 import '../../catalog/data/catalog_repository.dart';
 import 'wishlist_repository.dart';
+import '../../../core/i18n.dart';
 
 /// Ids of the signed-in user's saved products (drives the hearts). Empty when signed out.
 final wishlistProvider = AsyncNotifierProvider<WishlistNotifier, Set<String>>(WishlistNotifier.new);
@@ -22,7 +23,7 @@ class WishlistNotifier extends AsyncNotifier<Set<String>> {
   /// [waitFor]: saving a sold-out item also asks to hear when it's back (see [WishlistRepository.add]).
   Future<void> toggle(String productId, {String? waitFor}) async {
     final uid = ref.read(currentUserIdProvider);
-    if (uid == null) throw const AuthException('Sign in to save to your wishlist');
+    if (uid == null) throw AuthException(tr('Sign in to save to your wishlist'));
     final saved = state.value?.contains(productId) ?? false;
     _set(productId, !saved);
     try {
@@ -37,7 +38,7 @@ class WishlistNotifier extends AsyncNotifier<Set<String>> {
   /// Notify me (docs/FIREBASE.md §6): saves the product, or marks the saved entry, to hear when [waitFor] is back.
   Future<void> notifyWhenBack(String productId, String waitFor) async {
     final uid = ref.read(currentUserIdProvider);
-    if (uid == null) throw const AuthException('Sign in to hear when it’s back in stock');
+    if (uid == null) throw AuthException(tr('Sign in to hear when it’s back in stock'));
     await ref.read(wishlistRepositoryProvider).add(uid, productId, waitFor: waitFor);
     _set(productId, true);
   }

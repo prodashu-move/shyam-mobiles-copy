@@ -9,6 +9,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/errors.dart';
 import '../../../core/format.dart';
+import '../../../core/i18n.dart';
 import '../../../core/input.dart';
 import '../../../core/models/models.dart';
 import '../../../core/supabase.dart';
@@ -30,7 +31,7 @@ class AddressFormScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final addresses = ref.watch(addressesProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(addressId == null ? 'New address' : 'Edit address')),
+      appBar: AppBar(title: Text(addressId == null ? tr('New address') : tr('Edit address'))),
       body: AsyncBody(
         value: addresses,
         onRetry: () => ref.invalidate(addressesProvider),
@@ -41,9 +42,9 @@ class AddressFormScreen extends ConsumerWidget {
             return EmptyState(
               icon: PhosphorIconsRegular.mapPin,
               tone: Worlds.search,
-              title: 'Address not found',
-              message: 'It may have been deleted.',
-              action: OutlinedButton(onPressed: () => context.pop(), child: const Text('Go back')),
+              title: tr('Address not found'),
+              message: tr('It may have been deleted.'),
+              action: OutlinedButton(onPressed: () => context.pop(), child: Text(tr('Go back'))),
             );
           }
           return _AddressForm(existing: existing, forceDefault: list.isEmpty || (existing?.isDefault ?? false));
@@ -149,9 +150,9 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
     String? note;
     try {
       place = await ref.read(pincodeLookupProvider)(pin);
-      if (place == null) note = 'No post office has this pincode. Check it, or fill in the rest yourself.';
+      if (place == null) note = tr('No post office has this pincode. Check it, or fill in the rest yourself.');
     } catch (_) {
-      note = "Couldn't check the pincode just now. You can fill in the rest yourself.";
+      note = tr("Couldn't check the pincode just now. You can fill in the rest yourself.");
     }
     if (!mounted || seq != _pinSeq) return;
     setState(() {
@@ -177,16 +178,16 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
     var precise = true;
     try {
       if (!await Geolocator.isLocationServiceEnabled()) {
-        note = 'Location is turned off on this phone.';
-        fix = ('Turn on location', Geolocator.openLocationSettings);
+        note = tr('Location is turned off on this phone.');
+        fix = (tr('Turn on location'), Geolocator.openLocationSettings);
       } else {
         var permission = await Geolocator.checkPermission();
         if (permission == LocationPermission.denied) permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.deniedForever) {
-          note = 'Location access is off for Shyam Mobiles. Allow it in Settings, or type your address below.';
-          fix = ('Open settings', Geolocator.openAppSettings);
+          note = tr('Location access is off for Shyam Mobiles. Allow it in Settings, or type your address below.');
+          fix = (tr('Open settings'), Geolocator.openAppSettings);
         } else if (permission == LocationPermission.denied || permission == LocationPermission.unableToDetermine) {
-          note = 'No problem. Type your address below.';
+          note = tr('No problem. Type your address below.');
         } else {
           final pos = await Geolocator.getCurrentPosition(
             locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, timeLimit: Duration(seconds: 10)),
@@ -198,18 +199,18 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
               .timeout(const Duration(seconds: 10));
           final mark = marks.firstOrNull;
           if (mark == null) {
-            note = "Couldn't find an address here. Type it below.";
+            note = tr("Couldn't find an address here. Type it below.");
           } else if (mark.isoCountryCode != null && mark.isoCountryCode != 'IN') {
-            note = 'We deliver within India only. Type an Indian address below.';
+            note = tr('We deliver within India only. Type an Indian address below.');
           } else {
             guess = addressFromPlacemark(mark);
           }
         }
       }
     } on TimeoutException {
-      note = "Couldn't get your location in time. Try again, or type your address below.";
+      note = tr("Couldn't get your location in time. Try again, or type your address below.");
     } catch (_) {
-      note = "Couldn't get your location. Try again, or type your address below.";
+      note = tr("Couldn't get your location. Try again, or type your address below.");
     }
     if (!mounted) return;
     if (guess != null) note = _applyGuess(guess, precise: precise);
@@ -225,20 +226,20 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
     final pinBefore = _pincode.text;
     final filled = [
       // An approximate fix is off by a kilometre or more: the house and area would be someone else's.
-      if (precise && _fill(_line1, g.line1)) 'house and street',
-      if (precise && _fill(_line2, g.area)) 'area',
-      if (_fill(_city, g.city)) 'city',
-      if (_fill(_district, g.district)) 'district',
-      if (_fillState(g.state)) 'state',
-      if (_fill(_pincode, g.pincode)) 'pincode',
+      if (precise && _fill(_line1, g.line1)) tr('house and street'),
+      if (precise && _fill(_line2, g.area)) tr('area'),
+      if (_fill(_city, g.city)) tr('city'),
+      if (_fill(_district, g.district)) tr('district'),
+      if (_fillState(g.state)) tr('state'),
+      if (_fill(_pincode, g.pincode)) tr('pincode'),
     ];
     if (_pincode.text != pinBefore) _onPincode(_pincode.text);
-    if (filled.isEmpty) return 'Your location matches what you have typed. Nothing was changed.';
+    if (filled.isEmpty) return tr('Your location matches what you have typed. Nothing was changed.');
     final list = filled.length == 1
         ? filled.first
-        : '${filled.sublist(0, filled.length - 1).join(', ')} and ${filled.last}';
-    return 'Filled $list from your location. Please check before saving.'
-        '${precise ? '' : ' Your location is approximate, so add your house and area yourself.'}';
+        : tr('{list} and {last}', {'list': filled.sublist(0, filled.length - 1).join(', '), 'last': filled.last});
+    return tr('Filled {list} from your location. Please check before saving.', {'list': list}) +
+        (precise ? '' : ' ${tr('Your location is approximate, so add your house and area yourself.')}');
   }
 
   Future<void> _save() async {
@@ -296,7 +297,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                         icon: _locating
                             ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
                             : const Icon(PhosphorIconsRegular.crosshair),
-                        label: Text(_locating ? 'Finding your location…' : 'Use my current location'),
+                        label: Text(_locating ? tr('Finding your location…') : tr('Use my current location')),
                       ),
                     ),
                     if (_locNote != null)
@@ -315,7 +316,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     gap,
                     TextFormField(
                       controller: _name,
-                      decoration: const InputDecoration(labelText: 'Full name'),
+                      decoration: InputDecoration(labelText: tr('Full name')),
                       textCapitalization: TextCapitalization.words,
                       autofillHints: const [AutofillHints.name],
                       inputFormatters: textInput(MaxLen.name),
@@ -325,7 +326,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     gap,
                     TextFormField(
                       controller: _phone,
-                      decoration: const InputDecoration(labelText: 'Mobile number', prefixText: '+91 ', hintText: '98765 43210'),
+                      decoration: InputDecoration(labelText: tr('Mobile number'), prefixText: '+91 ', hintText: '98765 43210'),
                       keyboardType: TextInputType.phone,
                       autofillHints: const [AutofillHints.telephoneNumberNational],
                       inputFormatters: const [IndianMobileFormatter()],
@@ -336,9 +337,9 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     TextFormField(
                       controller: _pincode,
                       decoration: InputDecoration(
-                        labelText: 'Pincode',
+                        labelText: tr('Pincode'),
                         helperText: _lookingUp
-                            ? 'Checking pincode…'
+                            ? tr('Checking pincode…')
                             : place != null
                                 ? [place.district, ?place.state].join(' · ')
                                 : _pinNote,
@@ -349,7 +350,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                                 child: SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2)),
                               )
                             : place != null
-                                ? const Icon(PhosphorIconsRegular.checkCircle, semanticLabel: 'Pincode found')
+                                ? Icon(PhosphorIconsRegular.checkCircle, semanticLabel: tr('Pincode found'))
                                 : null,
                       ),
                       keyboardType: TextInputType.number,
@@ -361,7 +362,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     ),
                     if (areas.isNotEmpty) ...[
                       const SizedBox(height: Space.md),
-                      Text('Tap your area', style: t.labelLarge),
+                      Text(tr('Tap your area'), style: t.labelLarge),
                       const SizedBox(height: Space.xs),
                       ListenableBuilder(
                         listenable: _line2,
@@ -376,7 +377,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                               ),
                             if (shownAreas.length < areas.length)
                               ActionChip(
-                                label: Text('${areas.length - shownAreas.length} more'),
+                                label: Text(tr('{n} more', {'n': areas.length - shownAreas.length})),
                                 onPressed: () => setState(() => _allAreas = true),
                               ),
                           ],
@@ -386,7 +387,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     gap,
                     TextFormField(
                       controller: _line1,
-                      decoration: const InputDecoration(labelText: 'House no., flat, building'),
+                      decoration: InputDecoration(labelText: tr('House no., flat, building')),
                       textCapitalization: TextCapitalization.words,
                       autofillHints: const [AutofillHints.streetAddressLine1],
                       inputFormatters: textInput(MaxLen.addressLine),
@@ -396,7 +397,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     gap,
                     TextFormField(
                       controller: _line2,
-                      decoration: const InputDecoration(labelText: 'Area, street, locality (optional)'),
+                      decoration: InputDecoration(labelText: tr('Area, street, locality (optional)')),
                       textCapitalization: TextCapitalization.words,
                       autofillHints: const [AutofillHints.streetAddressLine2],
                       inputFormatters: textInput(MaxLen.addressLine),
@@ -406,7 +407,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     gap,
                     TextFormField(
                       controller: _landmark,
-                      decoration: const InputDecoration(labelText: 'Landmark (optional)', hintText: 'Near Shiv Mandir'),
+                      decoration: InputDecoration(labelText: tr('Landmark (optional)'), hintText: tr('Near Shiv Mandir')),
                       textCapitalization: TextCapitalization.sentences,
                       inputFormatters: textInput(MaxLen.landmark),
                       textInputAction: TextInputAction.next,
@@ -415,7 +416,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     gap,
                     TextFormField(
                       controller: _city,
-                      decoration: const InputDecoration(labelText: 'City, town or village'),
+                      decoration: InputDecoration(labelText: tr('City, town or village')),
                       textCapitalization: TextCapitalization.words,
                       autofillHints: const [AutofillHints.addressCity],
                       inputFormatters: textInput(MaxLen.place),
@@ -425,7 +426,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     gap,
                     TextFormField(
                       controller: _district,
-                      decoration: const InputDecoration(labelText: 'District (optional)'),
+                      decoration: InputDecoration(labelText: tr('District (optional)')),
                       textCapitalization: TextCapitalization.words,
                       inputFormatters: textInput(MaxLen.place),
                       textInputAction: TextInputAction.done,
@@ -435,16 +436,16 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     PickerField<String>(
                       // keyed by the value so a pincode or location autofill shows up in the field
                       key: ValueKey('state-$_state'),
-                      label: 'State',
+                      label: tr('State'),
                       options: states,
                       labelOf: (s) => s,
                       initialValue: _state,
                       onChanged: (v) => setState(() => _state = v),
                       validator: validateState,
-                      searchHint: 'Search states',
+                      searchHint: tr('Search states'),
                     ),
                     gap,
-                    Semantics(header: true, child: Text('Save address as', style: t.labelLarge)),
+                    Semantics(header: true, child: Text(tr('Save address as'), style: t.labelLarge)),
                     const SizedBox(height: Space.xs),
                     Wrap(
                       spacing: Space.sm,
@@ -453,7 +454,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                           ChoiceChip(
                             showCheckmark: false,
                             avatar: Icon(_labelIcons[l], size: 18, color: l == _label ? c.onPrimary : c.onSurface),
-                            label: Text(l.displayName),
+                            label: Text(tr(l.displayName)),
                             selected: l == _label,
                             onSelected: (_) => setState(() => _label = l),
                           ),
@@ -462,11 +463,11 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                     const SizedBox(height: Space.sm),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Use as default address'),
+                      title: Text(tr('Use as default address')),
                       subtitle: widget.forceDefault
                           ? Text(widget.existing == null
-                              ? 'Your first address is the default.'
-                              : 'To change this, set another address as default.')
+                              ? tr('Your first address is the default.')
+                              : tr('To change this, set another address as default.'))
                           : null,
                       value: _isDefault,
                       onChanged: widget.forceDefault ? null : (v) => setState(() => _isDefault = v),
@@ -491,7 +492,7 @@ class _AddressFormState extends ConsumerState<_AddressForm> {
                 onPressed: _saving ? null : _save,
                 child: _saving
                     ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2.5))
-                    : const Text('Save address'),
+                    : Text(tr('Save address')),
               ),
             ),
           ),

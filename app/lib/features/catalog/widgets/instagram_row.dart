@@ -8,6 +8,7 @@ import '../../../core/widgets/blocks.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/widgets.dart';
 import '../data/social_repository.dart';
+import '../../../core/i18n.dart';
 
 /// "From our Instagram": the shop's latest posts in a row; a tap opens the post in Instagram, or the browser.
 /// Nothing at all while loading, empty or failing.
@@ -24,7 +25,7 @@ class InstagramRow extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader('From our Instagram', gutter: Space.gutter),
+        SectionHeader(tr('From our Instagram'), gutter: Space.gutter),
         SizedBox(
           height: _size,
           child: ListView.separated(
@@ -36,7 +37,7 @@ class InstagramRow extends ConsumerWidget {
               final p = posts[i];
               return Semantics(
                 button: true,
-                label: 'Instagram post${p.caption.isEmpty ? ' ${i + 1}' : ': ${p.caption}'}',
+                label: p.caption.isEmpty ? tr('Instagram post {i}', {'i': i + 1}) : tr('Instagram post: {caption}', {'caption': p.caption}),
                 excludeSemantics: true,
                 child: Pressable(
                   child: ClipRRect(

@@ -38,26 +38,26 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   Future<void> _confirmSignOut() async {
     final ok = await confirmChoice(
       context,
-      title: 'Sign out?',
-      message: 'Your cart, wishlist and orders stay saved to your account. You’ll need a new code to sign in again.',
-      action: 'Sign out',
-      keep: 'Stay signed in',
+      title: tr('Sign out?'),
+      message: tr('Your cart, wishlist and orders stay saved to your account. You’ll need a new code to sign in again.'),
+      action: tr('Sign out'),
+      keep: tr('Stay signed in'),
       destructive: true,
     );
     if (!ok || !mounted) return;
     await _signOut();
-    if (mounted) showMessage(context, 'You’re signed out.');
+    if (mounted) showMessage(context, tr('You’re signed out.'));
   }
 
   Future<void> _deleteAccount() async {
     final ok = await confirmChoice(
       context,
-      title: 'Delete your account?',
-      message: 'This removes your profile, saved addresses, cart and wishlist, and signs you out. '
+      title: tr('Delete your account?'),
+      message: tr('This removes your profile, saved addresses, cart and wishlist, and signs you out. '
           'Past orders stay on record for tax purposes but are no longer linked to you. '
-          'This can’t be undone.',
-      action: 'Delete account',
-      keep: 'Keep account',
+          'This can’t be undone.'),
+      action: tr('Delete account'),
+      keep: tr('Keep account'),
       destructive: true,
     );
     if (!ok || !mounted) return;
@@ -66,7 +66,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       await ref.read(profileRepositoryProvider).deleteAccount();
       await _signOut(); // the user is gone server-side; this clears the local session
       if (!mounted) return;
-      showMessage(context, 'Your account was deleted.');
+      showMessage(context, tr('Your account was deleted.'));
       context.go('/');
     } catch (e) {
       if (!mounted) return;
@@ -82,23 +82,23 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Account')),
+        appBar: AppBar(title: Text(tr('Account'))),
         // one scrolling list, sign-in first: squeezed into what the store card left over, the prompt scrolled its
         // own button out of sight on shorter phones
         body: ListView(
           padding: const EdgeInsets.only(bottom: Space.xl),
-          children: const [
+          children: [
             SignInPrompt(
               icon: PhosphorIconsRegular.user,
               tone: Worlds.account,
-              title: 'Sign in to your account',
-              message: 'See your orders, saved addresses and wishlist.',
+              title: tr('Sign in to your account'),
+              message: tr('See your orders, saved addresses and wishlist.'),
               from: '/account',
             ),
-            SectionHeader('Shop', gutter: Space.gutter),
-            Padding(padding: EdgeInsets.symmetric(horizontal: Space.gutter), child: StoreCard()),
-            SectionHeader('About & policies', gutter: Space.gutter),
-            PolicyRows(),
+            SectionHeader(tr('Shop'), gutter: Space.gutter),
+            const Padding(padding: EdgeInsets.symmetric(horizontal: Space.gutter), child: StoreCard()),
+            SectionHeader(tr('About & policies'), gutter: Space.gutter),
+            const PolicyRows(),
           ],
         ),
       );
@@ -120,7 +120,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
         );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Account')),
+      appBar: AppBar(title: Text(tr('Account'))),
       body: RefreshIndicator(
         onRefresh: () => Future.wait([ref.refresh(profileProvider.future), ref.refresh(storeSettingsProvider.future)]),
         child: ListView(
@@ -133,50 +133,51 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               contact: accountPhone(user.phone, profile.value?.phone),
             ),
             const SizedBox(height: Space.sm),
-            row(PhosphorIconsRegular.package, 'My orders', () => context.push('/orders'), tint: Worlds.shop),
-            row(PhosphorIconsRegular.heart, 'Wishlist', () => context.push('/wishlist'), tint: Worlds.account),
+            row(PhosphorIconsRegular.package, tr('My orders'), () => context.push('/orders'), tint: Worlds.shop),
+            row(PhosphorIconsRegular.heart, tr('Wishlist'), () => context.push('/wishlist'), tint: Worlds.account),
             if (ref.watch(exchangeRepositoryProvider).enabled)
-              row(PhosphorIconsRegular.arrowsLeftRight, 'Exchange requests', () => context.push('/repairs/exchanges'),
-                  tint: Worlds.repairs, subtitle: 'Your old phone, the shop’s estimate'),
-            row(PhosphorIconsRegular.sealPercent, 'Offers & coupons', () => context.push('/offers'), tint: Worlds.offers),
+              row(PhosphorIconsRegular.arrowsLeftRight, tr('Exchange requests'), () => context.push('/repairs/exchanges'),
+                  tint: Worlds.repairs, subtitle: tr('Your old phone, the shop’s estimate')),
+            row(PhosphorIconsRegular.sealPercent, tr('Offers & coupons'), () => context.push('/offers'), tint: Worlds.offers),
             if (ref.watch(storeSettingsProvider).value case final s? when s.referralEnabled)
-              row(PhosphorIconsRegular.gift, 'Refer & earn', () => context.push('/account/refer'),
+              row(PhosphorIconsRegular.gift, tr('Refer & earn'), () => context.push('/account/refer'),
                   tint: Worlds.cart,
-                  subtitle: 'Give ${formatInr(s.referralFriendPaise)}, get ${formatInr(s.referralRewardPaise)}'),
-            row(PhosphorIconsRegular.mapPin, 'Addresses', () => context.push('/account/addresses'), tint: Worlds.search),
+                  subtitle: tr('Give {give}, get {get}',
+                      {'give': formatInr(s.referralFriendPaise), 'get': formatInr(s.referralRewardPaise)})),
+            row(PhosphorIconsRegular.mapPin, tr('Addresses'), () => context.push('/account/addresses'), tint: Worlds.search),
             // the bell on Home already leads here, so it sits lower
-            row(PhosphorIconsRegular.bell, 'Notifications', () => context.push('/notifications'),
+            row(PhosphorIconsRegular.bell, tr('Notifications'), () => context.push('/notifications'),
                 tint: Worlds.admin,
-                subtitle: switch (ref.watch(unreadCountProvider)) { 0 => null, final n => '$n unread' }),
-            row(PhosphorIconsRegular.userCircle, 'Profile', () => context.push('/account/profile'),
+                subtitle: switch (ref.watch(unreadCountProvider)) { 0 => null, final n => tr('{n} unread', {'n': n}) }),
+            row(PhosphorIconsRegular.userCircle, tr('Profile'), () => context.push('/account/profile'),
                 tint: (BrandColors.slateMist, BrandColors.slate)),
             row(PhosphorIconsRegular.translate, tr('Language'), () => showLanguageSheet(context, ref),
                 tint: Worlds.offers, subtitle: currentLanguage.label),
-            row(PhosphorIconsRegular.shieldCheck, 'Privacy', () => context.push('/account/privacy'),
-                tint: (BrandColors.slateMist, BrandColors.slate), subtitle: 'Usage data, crash reports, your data'),
+            row(PhosphorIconsRegular.shieldCheck, tr('Privacy'), () => context.push('/account/privacy'),
+                tint: (BrandColors.slateMist, BrandColors.slate), subtitle: tr('Usage data, crash reports, your data')),
             row(
               PhosphorIconsRegular.chatCircleText,
-              'Send feedback',
+              tr('Send feedback'),
               tint: (BrandColors.violetMist, BrandColors.violet),
               () => showFeedbackSheet(
                 context,
-                title: 'Send feedback',
+                title: tr('Send feedback'),
                 kinds: const [FeedbackKind.general, FeedbackKind.bug],
-                hint: 'What’s on your mind?',
+                hint: tr('What’s on your mind?'),
               ),
-              subtitle: 'An idea, or something not working',
+              subtitle: tr('An idea, or something not working'),
             ),
-            const SectionHeader('Shop', gutter: Space.gutter),
+            SectionHeader(tr('Shop'), gutter: Space.gutter),
             const Padding(padding: EdgeInsets.symmetric(horizontal: Space.gutter), child: StoreCard()),
-            const SectionHeader('About & policies', gutter: Space.gutter),
+            SectionHeader(tr('About & policies'), gutter: Space.gutter),
             const PolicyRows(),
             const SizedBox(height: Space.sm),
             const Divider(),
-            row(PhosphorIconsRegular.signOut, 'Sign out', _deleting ? null : _confirmSignOut,
+            row(PhosphorIconsRegular.signOut, tr('Sign out'), _deleting ? null : _confirmSignOut,
                 tint: (c.surfaceContainer, c.onSurface), trailing: const SizedBox.shrink()),
             row(
               PhosphorIconsRegular.trash,
-              'Delete account',
+              tr('Delete account'),
               _deleting ? null : _deleteAccount,
               color: c.error,
               trailing: _deleting ? const ButtonSpinner() : null,
@@ -222,7 +223,7 @@ class _Header extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      loading ? 'Your name' : name ?? 'Add your name',
+                      loading ? tr('Your name') : name ?? tr('Add your name'),
                       style: t.titleLarge?.copyWith(color: name == null && !loading ? c.primary : null),
                     ),
                     if (contact != null)

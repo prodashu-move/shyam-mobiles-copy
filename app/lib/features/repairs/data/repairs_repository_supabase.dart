@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/models/models.dart';
 import 'repairs_repository.dart';
+import '../../../core/i18n.dart';
 
 /// Today's repair queries and RPCs (supabase/migrations/20261030000300_repair_flow.sql), moved here unchanged from
 /// repairs.dart and admin.dart. Deleted in Phase 2 with Supabase.
@@ -38,7 +39,7 @@ class SupabaseRepairsRepository implements RepairsRepository {
     required String contactPhone,
   }) async {
     final uid = _db.auth.currentUser?.id;
-    if (uid == null) throw const AuthException('Sign in to book a repair');
+    if (uid == null) throw AuthException(tr('Sign in to book a repair'));
     final row = await _db
         .from('repair_bookings')
         .insert({

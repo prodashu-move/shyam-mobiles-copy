@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/errors.dart';
+import '../../../core/i18n.dart';
 import '../../../core/supabase.dart' show currentUserIdProvider;
 import '../../../core/widgets/widgets.dart';
 import '../data/profile_repository.dart';
@@ -45,9 +46,9 @@ class _OffersSwitchState extends ConsumerState<OffersSwitch> {
     return SwitchListTile(
       value: _pending ?? saved,
       onChanged: _pending == null ? _set : null,
-      title: const Text('Offers & reminders'),
-      subtitle: const Text('Price drops on your wishlist, a cart you left, tips for a new phone. At most one every 3 days, '
-          'never at night. Order and repair updates always come.'),
+      title: Text(tr('Offers & reminders')),
+      subtitle: Text(tr('Price drops on your wishlist, a cart you left, tips for a new phone. At most one every 3 days, '
+          'never at night. Order and repair updates always come.')),
       isThreeLine: true,
     );
   }

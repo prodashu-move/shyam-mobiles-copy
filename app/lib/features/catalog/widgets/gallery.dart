@@ -12,6 +12,7 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/made_to_order_art.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../../core/i18n.dart';
 
 /// The photos for [color]: that colour's own first, then the untagged ones (box, back, any colour). A colour with
 /// none of its own shows every photo.
@@ -121,7 +122,7 @@ class _GalleryState extends State<_Gallery> {
           onPageChanged: (i) => setState(() => _page = i),
           itemBuilder: (context, i) => Semantics(
             button: true,
-            label: n > 1 ? 'Photo ${i + 1} of $n, opens full screen' : 'Product photo, opens full screen',
+            label: n > 1 ? tr('Photo {i} of {n}, opens full screen', {'i': i + 1, 'n': n}) : tr('Product photo, opens full screen'),
             child: _Zoomable(
               key: _zoom.putIfAbsent(i, GlobalKey.new),
               active: i == _page,
@@ -162,7 +163,7 @@ class _GalleryState extends State<_Gallery> {
                         right: Space.sm,
                         bottom: Space.sm,
                         child: IconButton(
-                          tooltip: _zoomed ? 'Zoom out' : 'Zoom in',
+                          tooltip: _zoomed ? tr('Zoom out') : tr('Zoom in'),
                           style: IconButton.styleFrom(
                             backgroundColor: c.surface,
                             side: BorderSide(color: c.outlineVariant),
@@ -191,7 +192,7 @@ class _GalleryState extends State<_Gallery> {
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: 6),
                                   child: Text(
-                                    'Pinch or double-tap to zoom',
+                                    tr('Pinch or double-tap to zoom'),
                                     style: Theme.of(context).textTheme.labelMedium?.copyWith(color: c.onInverseSurface),
                                   ),
                                 ),
@@ -208,7 +209,7 @@ class _GalleryState extends State<_Gallery> {
             Row(
               children: [
                 IconButton(
-                  tooltip: 'Previous photo',
+                  tooltip: tr('Previous photo'),
                   onPressed: _page == 0 ? null : () => _show(_page - 1),
                   icon: const Icon(PhosphorIconsBold.caretLeft, size: 18),
                 ),
@@ -223,7 +224,7 @@ class _GalleryState extends State<_Gallery> {
                       itemBuilder: (context, i) => Semantics(
                         button: true,
                         selected: i == _page,
-                        label: 'Photo ${i + 1} of $n',
+                        label: tr('Photo {i} of {n}', {'i': i + 1, 'n': n}),
                         excludeSemantics: true,
                         child: InkWell(
                           onTap: () => _show(i),
@@ -246,7 +247,7 @@ class _GalleryState extends State<_Gallery> {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Next photo',
+                  tooltip: tr('Next photo'),
                   onPressed: _page == n - 1 ? null : () => _show(_page + 1),
                   icon: const Icon(PhosphorIconsBold.caretRight, size: 18),
                 ),
@@ -455,14 +456,14 @@ class _ViewerState extends State<_Viewer> {
         systemOverlayStyle: SystemUiOverlayStyle.light,
         automaticallyImplyLeading: false,
         leading: IconButton(
-          tooltip: 'Close',
+          tooltip: tr('Close'),
           icon: const Icon(PhosphorIconsBold.x),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: n > 1 ? Text('${_index + 1} of $n') : null,
+        title: n > 1 ? Text(tr('{i} of {n}', {'i': _index + 1, 'n': n})) : null,
         actions: [
           IconButton(
-            tooltip: _zoomed ? 'Fit to screen' : 'Zoom in',
+            tooltip: _zoomed ? tr('Fit to screen') : tr('Zoom in'),
             onPressed: () => _zoom[_index]?.currentState?.toggle(),
             icon: Icon(_zoomed ? PhosphorIconsBold.magnifyingGlassMinus : PhosphorIconsBold.magnifyingGlassPlus),
           ),
@@ -476,13 +477,13 @@ class _ViewerState extends State<_Viewer> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    tooltip: 'Previous photo',
+                    tooltip: tr('Previous photo'),
                     color: c.surface,
                     onPressed: _index == 0 ? null : () => _go(_index - 1),
                     icon: const Icon(PhosphorIconsBold.caretLeft),
                   ),
                   IconButton(
-                    tooltip: 'Next photo',
+                    tooltip: tr('Next photo'),
                     color: c.surface,
                     onPressed: _index == n - 1 ? null : () => _go(_index + 1),
                     icon: const Icon(PhosphorIconsBold.caretRight),
@@ -503,7 +504,7 @@ class _ViewerState extends State<_Viewer> {
           },
           itemBuilder: (context, i) => Semantics(
             image: true,
-            label: 'Photo ${i + 1} of $n',
+            label: tr('Photo {i} of {n}', {'i': i + 1, 'n': n}),
             child: _Zoomable(
               key: _zoom.putIfAbsent(i, GlobalKey.new),
               active: i == _index,

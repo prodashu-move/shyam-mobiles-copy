@@ -24,6 +24,7 @@ import '../../offers/data/offers.dart';
 import '../../offers/widgets/offer_widgets.dart';
 import '../data/payment.dart';
 import 'widgets.dart';
+import '../../../core/i18n.dart';
 
 /// Sticky checkout button: its label and whether it can be tapped. [totalPaise] is the server's quote, null
 /// until it arrives.
@@ -34,20 +35,20 @@ import 'widgets.dart';
   required bool cartOk,
   PayStage stage = PayStage.idle,
 }) {
-  if (stage != PayStage.idle) return (label: stage.label, enabled: false);
-  if (!cartOk) return (label: 'Fix your cart to continue', enabled: false);
-  if (!hasAddress) return (label: 'Add an address to continue', enabled: false);
-  if (totalPaise == null) return (label: 'Getting your total…', enabled: false);
+  if (stage != PayStage.idle) return (label: tr(stage.label), enabled: false);
+  if (!cartOk) return (label: tr('Fix your cart to continue'), enabled: false);
+  if (!hasAddress) return (label: tr('Add an address to continue'), enabled: false);
+  if (totalPaise == null) return (label: tr('Getting your total…'), enabled: false);
   final amount = formatInr(totalPaise);
-  return (label: method == PaymentMethod.cod ? 'Place order' : 'Pay $amount', enabled: true);
+  return (label: method == PaymentMethod.cod ? tr('Place order') : tr('Pay {amt}', {'amt': amount}), enabled: true);
 }
 
 /// Why cash on delivery can't be picked, or null if it can. Mirrors the `place_order` COD rule.
 String? codUnavailableReason(StoreSettings s, int totalPaise) => !s.codEnabled
-    ? 'Not available right now'
+    ? tr('Not available right now')
     : s.codAllowedFor(totalPaise)
         ? null
-        : 'Not available for orders above ${formatInr(s.codMaxPaise)}';
+        : tr('Not available for orders above {amt}', {'amt': formatInr(s.codMaxPaise)});
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -112,9 +113,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         body = EmptyState(
           icon: PhosphorIconsRegular.shoppingBag,
           tone: Worlds.cart,
-          title: 'Nothing to check out',
-          message: 'Your cart is empty. If you just placed an order, you’ll find it in Orders.',
-          action: FilledButton(onPressed: () => context.go('/orders'), child: const Text('View orders')),
+          title: tr('Nothing to check out'),
+          message: tr('Your cart is empty. If you just placed an order, you’ll find it in Orders.'),
+          action: FilledButton(onPressed: () => context.go('/orders'), child: Text(tr('View orders'))),
         );
       } else {
         final q = quote.value; // priced for the method picked, so an online-only code shows only with online pay
@@ -195,7 +196,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Checkout'),
+          title: Text(tr('Checkout')),
           leading: alone ? BackButton(onPressed: busy ? null : () => context.go('/cart')) : null,
         ),
         body: body,
@@ -225,9 +226,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
     showMessageOn(
       messenger,
-      'Removed ${line.productName}',
+      tr('Removed {name}', {'name': line.productName}),
       action: SnackBarAction(
-        label: 'Undo',
+        label: tr('Undo'),
         onPressed: () async {
           try {
             await cart.add(line.variant, qty: line.qty, forModel: line.forModel);
@@ -280,7 +281,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ? Row(
             children: [
               Expanded(child: Text(friendlyError(error), style: t.bodyMedium)),
-              TextButton(onPressed: () => ref.invalidate(quoteProvider), child: const Text('Retry')),
+              TextButton(onPressed: () => ref.invalidate(quoteProvider), child: Text(tr('Retry'))),
             ],
           )
         : Skeletonizer(
@@ -308,7 +309,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            head('Deliver to'),
+            head(tr('Deliver to')),
             Card(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(Space.lg, Space.md, Space.sm, Space.md),
@@ -318,8 +319,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     if (address == null)
                       Row(
                         children: [
-                          Expanded(child: Text('No delivery address yet', style: t.titleSmall)),
-                          TextButton(onPressed: busy ? null : _addAddress, child: const Text('Add address')),
+                          Expanded(child: Text(tr('No delivery address yet'), style: t.titleSmall)),
+                          TextButton(onPressed: busy ? null : _addAddress, child: Text(tr('Add address'))),
                         ],
                       )
                     else
@@ -350,7 +351,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           TextButton(
                             style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                             onPressed: busy ? null : () => _changeAddress(addresses, address),
-                            child: const Text('Change', semanticsLabel: 'Change delivery address'),
+                            child: Text(tr('Change'), semanticsLabel: tr('Change delivery address')),
                           ),
                         ],
                       ),
@@ -364,7 +365,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             const SizedBox(width: Space.sm),
                             Expanded(
                               child: Text(
-                                'Arranged items ship in $leadDays ${leadDays == 1 ? 'day' : 'days'}',
+                                leadDays == 1 ? tr('Arranged items ship in 1 day') : tr('Arranged items ship in {n} days', {'n': leadDays}),
                                 style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
                               ),
                             ),
@@ -376,7 +377,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ),
             ),
             gap,
-            head('Items ($count)'),
+            head(tr('Items ({n})', {'n': count})),
             Card(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Space.lg),
@@ -396,10 +397,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ),
             ),
             gap,
-            head('Offers'),
+            head(tr('Offers')),
             CouponRow(quote: quote, method: method, enabled: !busy),
             gap,
-            head('Payment'),
+            head(tr('Payment')),
             RadioGroup<PaymentMethod>(
               groupValue: method,
               onChanged: (m) {
@@ -411,7 +412,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     value: PaymentMethod.razorpay,
                     selected: method == PaymentMethod.razorpay,
                     enabled: !busy,
-                    title: 'Pay online (UPI, cards, netbanking)',
+                    title: tr('Pay online (UPI, cards, netbanking)'),
                     subtitle: null,
                     onTap: () => setState(() => _method = PaymentMethod.razorpay),
                   ),
@@ -420,15 +421,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     value: PaymentMethod.cod,
                     selected: method == PaymentMethod.cod,
                     enabled: codReason == null && !busy,
-                    title: 'Cash on delivery',
-                    subtitle: codReason ?? 'Pay in cash when it arrives',
+                    title: tr('Cash on delivery'),
+                    subtitle: codReason ?? tr('Pay in cash when it arrives'),
                     onTap: () => setState(() => _method = PaymentMethod.cod),
                   ),
                 ],
               ),
             ),
             gap,
-            head('Price details'),
+            head(tr('Price details')),
             KeyedSubtree(
               key: _billKey,
               child: Card(
@@ -441,7 +442,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 clipBehavior: Clip.antiAlias,
                 child: ListTile(
                   leading: const WhatsAppIcon(),
-                  title: const Text('Questions? WhatsApp us'),
+                  title: Text(tr('Questions? WhatsApp us')),
                   trailing: Icon(PhosphorIconsRegular.caretRight, size: IconSizes.sm, color: c.onSurfaceVariant),
                   onTap: () => openUri(
                     context,
@@ -480,7 +481,7 @@ class _ItemRow extends StatelessWidget {
     final warning = lineWarning(line);
     final v = line.variant;
     final unavailable = !line.productActive || !v.isActive || (!v.madeToOrder && v.stock <= 0);
-    final sub = [if (v.name.isNotEmpty) v.name, if (line.forModel != null) 'For: ${line.forModel}'].join(' · ');
+    final sub = [if (v.name.isNotEmpty) v.name, if (line.forModel != null) tr('For: {model}', {'model': line.forModel})].join(' · ');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Space.md),
       child: Row(
@@ -530,7 +531,7 @@ class _ItemRow extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Remove ${line.productName}',
+                      tooltip: tr('Remove {name}', {'name': line.productName}),
                       onPressed: enabled ? onRemove : null,
                       constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                       icon: Icon(PhosphorIconsRegular.trash, size: 20, color: c.onSurfaceVariant),
@@ -582,25 +583,25 @@ class _Bill extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        row('Price ($count ${count == 1 ? 'item' : 'items'})', formatInr(quote.subtotalPaise + mrpOff)),
+        row(tr('Price ({n})', {'n': count == 1 ? tr('1 item') : tr('{n} items', {'n': count})}), formatInr(quote.subtotalPaise + mrpOff)),
         if (mrpOff > 0)
-          row('Discount on MRP', '−${formatInr(mrpOff)}', style: green, semantics: 'minus ${formatInr(mrpOff)}'),
+          row(tr('Discount on MRP'), '−${formatInr(mrpOff)}', style: green, semantics: tr('minus {amt}', {'amt': formatInr(mrpOff)})),
         if (quote.discountPaise > 0)
           row(
             label == null
-                ? 'Offer'
+                ? tr('Offer')
                 : label.startsWith('Pack saving')
                 ? label
-                : 'Offer · $label',
+                : '${tr('Offer')} · $label',
             '−${formatInr(quote.discountPaise)}',
             style: green,
-            semantics: 'minus ${formatInr(quote.discountPaise)}',
+            semantics: tr('minus {amt}', {'amt': formatInr(quote.discountPaise)}),
           )
         else if (label != null)
-          row('Offer · $label', 'Free delivery', style: green),
+          row('${tr('Offer')} · $label', tr('Free delivery'), style: green),
         row(
-          'Delivery',
-          quote.deliveryFeePaise == 0 ? 'Free' : formatInr(quote.deliveryFeePaise),
+          tr('Delivery'),
+          quote.deliveryFeePaise == 0 ? tr('Free') : formatInr(quote.deliveryFeePaise),
           style: quote.deliveryFeePaise == 0 ? green : null,
         ),
         const Padding(
@@ -612,7 +613,7 @@ class _Bill extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Text('Total', style: t.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                child: Text(tr('Total'), style: t.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
               ),
               Text(
                 formatInr(quote.totalPaise),
@@ -627,7 +628,7 @@ class _Bill extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: Space.sm),
             decoration: BoxDecoration(color: c.secondaryContainer, borderRadius: BorderRadius.circular(Radii.md)),
             child: Text(
-              'You save ${formatInr(saving)} on this order',
+              tr('You save {amt} on this order', {'amt': formatInr(saving)}),
               style: t.labelLarge?.copyWith(color: c.onSecondaryContainer, fontWeight: FontWeight.w700),
             ),
           ),
@@ -735,7 +736,7 @@ class _PayBar extends StatelessWidget {
                   opacity: requoting ? 0.5 : 1,
                   duration: Motion.fast,
                   child: Text(
-                    totalPaise == null ? 'Total —' : 'Total ${formatInr(totalPaise!)}',
+                    totalPaise == null ? tr('Total —') : tr('Total {amt}', {'amt': formatInr(totalPaise!)}),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: t.titleMedium?.copyWith(fontWeight: FontWeight.w800, fontFeatures: tabularFigures),
@@ -749,7 +750,7 @@ class _PayBar extends StatelessWidget {
                     alignment: AlignmentDirectional.centerStart,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: const Text('View details'),
+                  child: Text(tr('View details')),
                 ),
               ],
             ),

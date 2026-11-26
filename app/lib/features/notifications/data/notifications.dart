@@ -15,6 +15,7 @@ import '../../feedback/data/feedback.dart' show feedbackNewCountProvider;
 import '../../orders/data/orders.dart';
 import '../../repairs/data/repairs.dart';
 import 'notifications_repository.dart';
+import '../../../core/i18n.dart';
 
 // Notifications (docs/SPEC.md "Notifications"): database triggers write one for every order, payment, repair, coupon,
 // feedback and stock event, to the customer it's about and to each admin who has to act. People read, mark read and
@@ -86,10 +87,10 @@ List<(DayGroup, List<AppNotification>)> groupByDay(List<AppNotification> items, 
 /// "Just now", "5 min ago", "3 h ago" today; the time yesterday; the date before that.
 String timeAgo(DateTime at, DateTime now) {
   final d = now.difference(at);
-  if (d.inMinutes < 1) return 'Just now';
+  if (d.inMinutes < 1) return tr('Just now');
   return switch (DayGroup.of(at, now)) {
-    _ when d.inMinutes < 60 => '${d.inMinutes} min ago',
-    DayGroup.today => '${d.inHours} h ago',
+    _ when d.inMinutes < 60 => tr('{n} min ago', {'n': d.inMinutes}),
+    DayGroup.today => tr('{n} h ago', {'n': d.inHours}),
     DayGroup.yesterday => DateFormat('h:mm a').format(at.toLocal()),
     DayGroup.earlier => DateFormat('d MMM').format(at.toLocal()),
   };

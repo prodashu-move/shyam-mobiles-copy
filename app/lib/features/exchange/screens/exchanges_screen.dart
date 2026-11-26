@@ -7,6 +7,7 @@ import '../../../core/widgets/widgets.dart';
 import '../data/exchanges.dart';
 import '../data/exchange_repository.dart';
 import '../widgets/exchange_widgets.dart';
+import '../../../core/i18n.dart';
 
 /// "Exchange requests": what the customer sent, and the shop's estimate once it's there (Repairs → /exchanges).
 class ExchangesScreen extends ConsumerWidget {
@@ -14,21 +15,21 @@ class ExchangesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-        appBar: AppBar(title: const Text('Exchange requests')),
+        appBar: AppBar(title: Text(tr('Exchange requests'))),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => showExchangeSheet(context),
           icon: const Icon(PhosphorIconsRegular.arrowsLeftRight),
-          label: const Text('New request'),
+          label: Text(tr('New request')),
         ),
         body: AsyncBody<List<ExchangeRequest>>(
           value: ref.watch(myExchangesProvider),
           onRetry: () => ref.invalidate(myExchangesProvider),
           loading: const Center(child: CircularProgressIndicator()),
           data: (all) => all.isEmpty
-              ? const EmptyState(
+              ? EmptyState(
                   icon: PhosphorIconsRegular.arrowsLeftRight,
-                  title: 'No exchange requests yet',
-                  message: 'Tell the shop about your old phone and get an estimate.',
+                  title: tr('No exchange requests yet'),
+                  message: tr('Tell the shop about your old phone and get an estimate.'),
                 )
               : RefreshIndicator(
                   onRefresh: () => ref.refresh(myExchangesProvider.future),

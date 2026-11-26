@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/format.dart';
+import '../../../core/i18n.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/widgets.dart';
 import '../data/auth_errors.dart';
@@ -93,7 +94,7 @@ class _VerifyCodeScreenState extends ConsumerState<VerifyCodeScreen> {
     });
     try {
       _request = await _auth.requestPhoneCode(_request!.phone, resend: _request);
-      if (mounted) showMessage(context, 'New code sent.');
+      if (mounted) showMessage(context, tr('New code sent.'));
     } catch (e) {
       if (!mounted) return;
       _timer?.cancel();
@@ -114,7 +115,7 @@ class _VerifyCodeScreenState extends ConsumerState<VerifyCodeScreen> {
     final t = Theme.of(context).textTheme;
     final quiet = t.bodyMedium?.copyWith(color: c.onSurfaceVariant);
     const tabular = [FontFeature.tabularFigures()];
-    final back = IconButton(tooltip: 'Back', icon: const Icon(PhosphorIconsRegular.arrowLeft), onPressed: _back);
+    final back = IconButton(tooltip: tr('Back'), icon: const Icon(PhosphorIconsRegular.arrowLeft), onPressed: _back);
 
     final request = _request;
     if (request == null) {
@@ -122,9 +123,9 @@ class _VerifyCodeScreenState extends ConsumerState<VerifyCodeScreen> {
         appBar: AppBar(leading: back),
         body: EmptyState(
           icon: PhosphorIconsRegular.signIn,
-          title: 'Start again',
-          message: 'Enter your mobile number to get a code.',
-          action: FilledButton(onPressed: _back, child: const Text('Back to sign in')),
+          title: tr('Start again'),
+          message: tr('Enter your mobile number to get a code.'),
+          action: FilledButton(onPressed: _back, child: Text(tr('Back to sign in'))),
         ),
       );
     }
@@ -140,14 +141,14 @@ class _VerifyCodeScreenState extends ConsumerState<VerifyCodeScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Semantics(header: true, child: Text('Enter the code', style: t.displaySmall)),
+              Semantics(header: true, child: Text(tr('Enter the code'), style: t.displaySmall)),
               const SizedBox(height: Space.sm),
-              Text('We sent a 6-digit code by SMS to', style: quiet),
+              Text(tr('We sent a 6-digit code by SMS to'), style: quiet),
               Row(
                 children: [
                   Flexible(child: Text(displayPhone(request.phone), style: t.titleMedium?.copyWith(fontFeatures: tabular))),
                   const SizedBox(width: Space.xs),
-                  TextButton(onPressed: _back, child: const Text('Change', semanticsLabel: 'Change number')),
+                  TextButton(onPressed: _back, child: Text(tr('Change'), semanticsLabel: tr('Change number'))),
                 ],
               ),
             ],
@@ -166,7 +167,7 @@ class _VerifyCodeScreenState extends ConsumerState<VerifyCodeScreen> {
               spacing: Space.sm,
               children: [
                 const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                Text('Checking…', style: t.bodyMedium),
+                Text(tr('Checking…'), style: t.bodyMedium),
               ],
             )
           else if (error != null) ...[
@@ -181,7 +182,7 @@ class _VerifyCodeScreenState extends ConsumerState<VerifyCodeScreen> {
                 child: TextButton(
                   onPressed: () => _verify(_code.text),
                   style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                  child: const Text('Try again'),
+                  child: Text(tr('Try again')),
                 ),
               ),
           ],
@@ -191,13 +192,13 @@ class _VerifyCodeScreenState extends ConsumerState<VerifyCodeScreen> {
             child: _secondsLeft > 0
                 ? Padding(
                     padding: const EdgeInsets.symmetric(vertical: Space.md),
-                    child: Text('Resend code in $mm:$ss', style: quiet?.copyWith(fontFeatures: tabular)),
+                    child: Text(tr('Resend code in {time}', {'time': '$mm:$ss'}), style: quiet?.copyWith(fontFeatures: tabular)),
                   )
                 : TextButton.icon(
                     onPressed: _verifying ? null : _resend,
                     style: TextButton.styleFrom(padding: EdgeInsets.zero),
                     icon: const Icon(PhosphorIconsRegular.arrowClockwise, size: 18),
-                    label: const Text('Resend code'),
+                    label: Text(tr('Resend code')),
                   ),
           ),
         ],

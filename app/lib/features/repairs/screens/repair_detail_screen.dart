@@ -14,6 +14,7 @@ import '../../admin/widgets/admin_widgets.dart' show CancelButton;
 import '../../feedback/widgets/feedback_widgets.dart';
 import '../data/repairs.dart';
 import '../widgets/repair_widgets.dart';
+import '../../../core/i18n.dart';
 
 const _steps = [
   RepairStatus.requested,
@@ -25,18 +26,18 @@ const _steps = [
 
 /// What happens next, in the customer's words, for the step they're on (the quote decides most of it).
 String repairStepCopy(RepairBooking b) => switch (b.status) {
-      _ when b.awaitingApproval => 'Check the price below. Work starts only after you approve it.',
+      _ when b.awaitingApproval => tr('Check the price below. Work starts only after you approve it.'),
       _ when b.quoteDeclined => b.canCancel
-          ? 'You declined the price. We’ll call you with other options, or you can cancel the booking.'
-          : 'You declined the new price. We’ll call you about your phone.',
-      RepairStatus.requested => 'We’ll call to confirm your slot.',
+          ? tr('You declined the price. We’ll call you with other options, or you can cancel the booking.')
+          : tr('You declined the new price. We’ll call you about your phone.'),
+      RepairStatus.requested => tr('We’ll call to confirm your slot.'),
       RepairStatus.confirmed => b.quoteStatus == RepairQuoteStatus.approved
-          ? 'Price approved. We’ll start the repair soon.'
-          : 'Bring your phone in at your slot. We’ll check it and send you the price here.',
-      RepairStatus.inProgress => 'Our technician is on it.',
-      RepairStatus.ready => 'Pick it up from the shop.',
-      RepairStatus.completed => 'All done. Thanks for coming in.',
-      RepairStatus.cancelled => 'This booking is cancelled.',
+          ? tr('Price approved. We’ll start the repair soon.')
+          : tr('Bring your phone in at your slot. We’ll check it and send you the price here.'),
+      RepairStatus.inProgress => tr('Our technician is on it.'),
+      RepairStatus.ready => tr('Pick it up from the shop.'),
+      RepairStatus.completed => tr('All done. Thanks for coming in.'),
+      RepairStatus.cancelled => tr('This booking is cancelled.'),
     };
 
 class RepairDetailScreen extends ConsumerStatefulWidget {
@@ -81,42 +82,42 @@ class _RepairDetailScreenState extends ConsumerState<RepairDetailScreen> {
   Future<void> _cancel() async {
     final ok = await confirmChoice(
       context,
-      title: 'Cancel this booking?',
-      message: 'Your slot will be released. You can book again any time.',
-      action: 'Cancel booking',
-      keep: 'Keep booking',
+      title: tr('Cancel this booking?'),
+      message: tr('Your slot will be released. You can book again any time.'),
+      action: tr('Cancel booking'),
+      keep: tr('Keep booking'),
       destructive: true,
     );
     if (!ok || !mounted) return;
-    await _write('Booking cancelled', (repo) => repo.cancel(widget.bookingId));
+    await _write(tr('Booking cancelled'), (repo) => repo.cancel(widget.bookingId));
   }
 
   Future<void> _approve(RepairBooking b) async {
     final quote = formatInr(b.quotePaise!);
     final ok = await confirmChoice(
       context,
-      title: 'Approve $quote?',
-      message: 'We’ll go ahead with the repair at this price. If we find anything else, we’ll ask you again first.',
-      action: 'Approve',
-      keep: 'Not now',
+      title: tr('Approve {q}?', {'q': quote}),
+      message: tr('We’ll go ahead with the repair at this price. If we find anything else, we’ll ask you again first.'),
+      action: tr('Approve'),
+      keep: tr('Not now'),
     );
     if (!ok || !mounted) return;
-    await _write('Price approved', (repo) => repo.approveQuote(b));
+    await _write(tr('Price approved'), (repo) => repo.approveQuote(b));
   }
 
   Future<void> _decline(RepairBooking b) async {
     final reason = await askReason(
       context,
-      title: 'Decline ${formatInr(b.quotePaise!)}?',
-      message: 'We won’t do the work at this price. We’ll call you with other options.',
-      action: 'Decline',
-      keep: 'Keep quote',
-      label: 'Reason (optional)',
+      title: tr('Decline {q}?', {'q': formatInr(b.quotePaise!)}),
+      message: tr('We won’t do the work at this price. We’ll call you with other options.'),
+      action: tr('Decline'),
+      keep: tr('Keep quote'),
+      label: tr('Reason (optional)'),
       optional: true,
       maxLength: 300,
     );
     if (reason == null || !mounted) return;
-    await _write('Declined. We’ll call you.', (repo) => repo.declineQuote(b.id, reason));
+    await _write(tr('Declined. We’ll call you.'), (repo) => repo.declineQuote(b.id, reason));
   }
 
   @override
@@ -124,7 +125,7 @@ class _RepairDetailScreenState extends ConsumerState<RepairDetailScreen> {
     final provider = repairProvider(widget.bookingId);
     final value = ref.watch(provider);
     return Scaffold(
-      appBar: AppBar(title: Text(value.value == null ? 'Repair' : 'Repair ${value.value!.number}')),
+      appBar: AppBar(title: Text(value.value == null ? tr('Repair') : tr('Repair {n}', {'n': value.value!.number}))),
       body: AsyncBody<RepairBooking>(
         value: value,
         onRetry: () => ref.invalidate(provider),
@@ -173,34 +174,34 @@ class _Body extends StatelessWidget {
         ],
         if (b.status == RepairStatus.completed) ...[
           const SizedBox(height: Space.md),
-          RateCard(title: 'How was your repair?', repairId: b.id),
+          RateCard(title: tr('How was your repair?'), repairId: b.id),
         ],
-        const ListSection('Details'),
+        ListSection(tr('Details')),
         Card(
           child: Column(
             children: [
-              InfoRow('Phone', '${b.deviceBrand} ${b.deviceModel}'),
-              InfoRow('Issue', b.issue.label),
-              if (b.description.isNotEmpty) InfoRow('Notes', b.description),
-              InfoRow('Slot', '${repairWhen(b)} (${b.slot.hours})'),
-              InfoRow('Contact', displayPhone(b.contactPhone)),
-              if (b.quotePaise == null) const InfoRow('Quote', 'After inspection'),
+              InfoRow(tr('Phone'), '${b.deviceBrand} ${b.deviceModel}'),
+              InfoRow(tr('Issue'), tr(b.issue.label)),
+              if (b.description.isNotEmpty) InfoRow(tr('Notes'), b.description),
+              InfoRow(tr('Slot'), '${repairWhen(b)} (${tr(b.slot.hours)})'),
+              InfoRow(tr('Contact'), displayPhone(b.contactPhone)),
+              if (b.quotePaise == null) InfoRow(tr('Quote'), tr('After inspection')),
             ],
           ),
         ),
         if (b.events.isNotEmpty) ...[
-          const ListSection('Updates'),
+          ListSection(tr('Updates')),
           RepairHistory(events: b.events),
         ],
         const SizedBox(height: Space.lg),
         StoreContactButtons(message: 'Hi, about repair ${b.number}'),
         if (b.canCancel) ...[
           const SizedBox(height: Space.sm),
-          CancelButton(label: 'Cancel booking', onPressed: busy ? null : onCancel),
+          CancelButton(label: tr('Cancel booking'), onPressed: busy ? null : onCancel),
         ],
         const SizedBox(height: Space.sm),
         Text(
-          'Booked ${formatDateTime(b.createdAt)}',
+          tr('Booked {d}', {'d': formatDateTime(b.createdAt)}),
           textAlign: TextAlign.center,
           style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
         ),
@@ -223,12 +224,12 @@ class _QuoteCard extends StatelessWidget {
     final t = Theme.of(context).textTheme;
     final c = Theme.of(context).colorScheme;
     final b = booking;
-    final decided = b.quoteDecidedAt == null ? '' : ' on ${formatDate(b.quoteDecidedAt!)}';
+    final date = b.quoteDecidedAt == null ? null : formatDate(b.quoteDecidedAt!);
     final line = switch (b.quoteStatus) {
-      _ when b.awaitingApproval => 'Work starts only after you approve this price.',
-      RepairQuoteStatus.approved => 'Price approved$decided.',
-      RepairQuoteStatus.declined => 'You declined this price$decided.',
-      _ => 'This price wasn’t approved.',
+      _ when b.awaitingApproval => tr('Work starts only after you approve this price.'),
+      RepairQuoteStatus.approved => date == null ? tr('Price approved.') : tr('Price approved on {d}.', {'d': date}),
+      RepairQuoteStatus.declined => date == null ? tr('You declined this price.') : tr('You declined this price on {d}.', {'d': date}),
+      _ => tr('This price wasn’t approved.'),
     };
     return Card(
       child: Padding(
@@ -236,7 +237,7 @@ class _QuoteCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Quote', style: t.labelMedium?.copyWith(color: c.onSurfaceVariant)),
+            Text(tr('Quote'), style: t.labelMedium?.copyWith(color: c.onSurfaceVariant)),
             Text(
               formatInr(b.quotePaise!),
               style: t.headlineSmall?.copyWith(
@@ -251,11 +252,11 @@ class _QuoteCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(onPressed: busy ? null : onDecline, child: const Text('Decline')),
+                    child: OutlinedButton(onPressed: busy ? null : onDecline, child: Text(tr('Decline'))),
                   ),
                   const SizedBox(width: Space.sm),
                   Expanded(
-                    child: FilledButton(onPressed: busy ? null : onApprove, child: const Text('Approve')),
+                    child: FilledButton(onPressed: busy ? null : onApprove, child: Text(tr('Approve'))),
                   ),
                 ],
               ),
@@ -292,11 +293,11 @@ class RepairStatusHero extends StatelessWidget {
             const SizedBox(height: Space.xs),
             Semantics(
               header: true,
-              child: Text(booking.status.label, style: t.displaySmall?.copyWith(color: fg)),
+              child: Text(tr(booking.status.label), style: t.displaySmall?.copyWith(color: fg)),
             ),
             const SizedBox(height: Space.xs),
             Text(
-              '${repairWhen(booking)} · ${booking.slot.hours}',
+              '${repairWhen(booking)} · ${tr(booking.slot.hours)}',
               style: t.bodySmall?.copyWith(color: fg),
             ),
           ],
@@ -357,13 +358,13 @@ class RepairTimeline extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 4, bottom: Space.lg),
                     child: Semantics(
-                      label: '${s.label}, ${i <= current ? 'done' : 'not yet'}',
+                      label: '${tr(s.label)}, ${tr(i <= current ? 'done' : 'not yet')}',
                       excludeSemantics: true,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            s.label,
+                            tr(s.label),
                             style: t.titleSmall?.copyWith(color: i <= current ? c.onSurface : c.onSurfaceVariant),
                           ),
                           if (i <= current && reached(s) != null)

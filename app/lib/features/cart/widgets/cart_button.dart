@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/widgets/widgets.dart';
 import '../data/cart.dart';
+import '../../../core/i18n.dart';
 
 /// The cart in the top bar of pushed shopping screens (they have no bottom nav): the gold count, a pop when it
 /// rises, and the cart (/bag) pushed over the screen.
@@ -27,7 +28,7 @@ class _CartButtonState extends ConsumerState<CartButton> {
       if (now > (was ?? now)) setState(() => _rises++);
     });
     return IconButton(
-      tooltip: n > 0 ? 'Cart, $n items' : 'Cart',
+      tooltip: n > 0 ? tr('Cart, {n} items', {'n': n}) : tr('Cart'),
       style: widget.style,
       onPressed: () => context.push('/bag'), // so Back returns to this screen
       icon: Bump(

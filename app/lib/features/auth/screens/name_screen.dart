@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/errors.dart';
+import '../../../core/i18n.dart';
 import '../../../core/input.dart';
 import '../../../core/router.dart';
 import '../../../core/theme/tokens.dart';
@@ -57,7 +58,7 @@ class _NameScreenState extends ConsumerState<NameScreen> {
     try {
       await saveFullName(ref, displayName(_name.text)); // the listener then leaves
     } catch (e) {
-      if (mounted) showMessage(context, friendlyError(e), action: SnackBarAction(label: 'Try again', onPressed: _save));
+      if (mounted) showMessage(context, friendlyError(e), action: SnackBarAction(label: tr('Try again'), onPressed: _save));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -80,9 +81,9 @@ class _NameScreenState extends ConsumerState<NameScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Semantics(header: true, child: Text('What should we call you?', style: t.displaySmall)),
+                  Semantics(header: true, child: Text(tr('What should we call you?'), style: t.displaySmall)),
                   const SizedBox(height: Space.sm),
-                  Text('We’ll put it on your orders and repair bookings.',
+                  Text(tr('We’ll put it on your orders and repair bookings.'),
                       style: t.bodyMedium?.copyWith(color: c.onSurfaceVariant)),
                 ],
               ).enter(context),
@@ -96,7 +97,7 @@ class _NameScreenState extends ConsumerState<NameScreen> {
                     textCapitalization: TextCapitalization.words,
                     autofillHints: const [AutofillHints.name],
                     inputFormatters: textInput(MaxLen.name),
-                    decoration: const InputDecoration(labelText: 'Your name', hintText: 'Ravi Kumar'),
+                    decoration: InputDecoration(labelText: tr('Your name'), hintText: tr('Ravi Kumar')),
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _save(),
                     validator: validatePersonName,
@@ -104,7 +105,7 @@ class _NameScreenState extends ConsumerState<NameScreen> {
                   const SizedBox(height: Space.lg),
                   FilledButton(
                     onPressed: _save,
-                    child: _saving ? const ButtonSpinner() : const Text('Continue'),
+                    child: _saving ? const ButtonSpinner() : Text(tr('Continue')),
                   ),
                 ],
               ).enter(context, index: 1),

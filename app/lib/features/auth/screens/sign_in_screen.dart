@@ -9,6 +9,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/env.dart';
 import '../../../core/format.dart';
+import '../../../core/i18n.dart';
 import '../../../core/input.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/widgets.dart';
@@ -80,7 +81,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       if (!mounted) return;
       final message = authError(e).message;
       showMessage(context, message,
-          action: message == tooManyTries ? null : SnackBarAction(label: 'Try again', onPressed: _sendCode));
+          action: message == tr(tooManyTries) ? null : SnackBarAction(label: tr('Try again'), onPressed: _sendCode));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -95,7 +96,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     } catch (e) {
       if (!mounted) return;
       showMessage(context,
-          e is GoogleSignInException ? 'Couldn’t sign in with Google. Try again, or use your mobile number.' : authError(e).message);
+          e is GoogleSignInException ? tr('Couldn’t sign in with Google. Try again, or use your mobile number.') : authError(e).message);
     } finally {
       if (mounted) setState(() => _googleBusy = false);
     }
@@ -112,7 +113,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          tooltip: 'Close',
+          tooltip: tr('Close'),
           icon: const Icon(PhosphorIconsRegular.x),
           onPressed: () => context.canPop() ? context.pop() : context.go('/'),
         ),
@@ -132,9 +133,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     children: [
                       const BrandMark(size: 52, ripple: true),
                       const SizedBox(height: Space.gutter),
-                      Semantics(header: true, child: Text('Welcome to Shyam Mobiles', style: t.displaySmall)),
+                      Semantics(header: true, child: Text(tr('Welcome to Shyam Mobiles'), style: t.displaySmall)),
                       const SizedBox(height: Space.sm),
-                      Text('Phones, accessories and repairs in Waidhan', style: quiet),
+                      Text(tr('Phones, accessories and repairs in Waidhan'), style: quiet),
                     ],
                   ).enter(context),
                   const SizedBox(height: Space.xxl),
@@ -146,7 +147,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         const Expanded(child: Divider()),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: Space.md),
-                          child: Text('or', style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
+                          child: Text(tr('or'), style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
                         ),
                         const Expanded(child: Divider()),
                       ],
@@ -156,10 +157,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      ExcludeSemantics(child: Text('Mobile number', style: t.titleSmall)),
+                      ExcludeSemantics(child: Text(tr('Mobile number'), style: t.titleSmall)),
                       const SizedBox(height: Space.sm),
                       Semantics(
-                        label: 'Mobile number',
+                        label: tr('Mobile number'),
                         child: TextField(
                           controller: _phone,
                           keyboardType: TextInputType.phone,
@@ -193,7 +194,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       const SizedBox(height: Space.md),
                       FilledButton(
                         onPressed: _googleBusy ? null : _sendCode,
-                        child: _sending ? const ButtonSpinner() : const Text('Get code'),
+                        child: _sending ? const ButtonSpinner() : Text(tr('Get code')),
                       ),
                     ],
                   ).enter(context, index: 2),
@@ -203,10 +204,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   // Play requires the privacy policy to be reachable inside the app, so these are real links.
                   Text.rich(
                     TextSpan(children: [
-                      const TextSpan(text: 'By continuing you agree to the '),
-                      TextSpan(text: 'Terms', style: link, recognizer: _termsTap),
-                      const TextSpan(text: ' and '),
-                      TextSpan(text: 'Privacy Policy', style: link, recognizer: _privacyTap),
+                      TextSpan(text: tr('By continuing you agree to the ')),
+                      TextSpan(text: tr('Terms'), style: link, recognizer: _termsTap),
+                      TextSpan(text: tr(' and ')),
+                      TextSpan(text: tr('Privacy Policy'), style: link, recognizer: _privacyTap),
                       const TextSpan(text: '.'),
                     ]),
                     textAlign: TextAlign.center,
@@ -249,7 +250,7 @@ class _GoogleButton extends StatelessWidget {
             else
               Image.asset('assets/brand/google_g.png', width: 20, height: 20, excludeFromSemantics: true),
             const SizedBox(width: 10),
-            const Flexible(child: Text('Continue with Google')),
+            Flexible(child: Text(tr('Continue with Google'))),
           ],
         ),
       );

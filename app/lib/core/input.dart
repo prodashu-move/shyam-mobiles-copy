@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'format.dart';
+import 'i18n.dart';
 
 /// The rules every text field shares: what can be typed or pasted (formatters), how a value is tidied before
 /// it's saved, and the validators. Limits mirror the DB checks in supabase/migrations/20261028000000_schema.sql.
@@ -75,10 +76,10 @@ final hasLetterOrDigit = RegExp(r'[\p{L}\p{N}]', unicode: true);
 String? checkText(String? v, {required int max, int min = 0, String what = 'this', RegExp? mustHave, bool multiline = false}) {
   final s = tidy(v, multiline: multiline);
   final n = s.runes.length;
-  if (n == 0) return min > 0 ? 'Enter $what.' : null;
-  if (mustHave != null && !mustHave.hasMatch(s)) return 'Use letters, not only symbols or emoji.';
-  if (n < min) return 'Too short.';
-  if (n > max) return 'Keep it to $max characters.';
+  if (n == 0) return min > 0 ? tr('Enter {what}.', {'what': tr(what)}) : null;
+  if (mustHave != null && !mustHave.hasMatch(s)) return tr('Use letters, not only symbols or emoji.');
+  if (n < min) return tr('Too short.');
+  if (n > max) return tr('Keep it to {max} characters.', {'max': max});
   return null;
 }
 
@@ -222,8 +223,8 @@ final couponCodeInput = [_code(RegExp(r'^[A-Z0-9]$'), upper: true), const CodePo
 /// Null for a code of [min]..[max] capitals and digits: `promotions.code` is 4–20, referral codes 6–10.
 String? validateCode(String? v, {int min = 4, int max = 20}) {
   final s = (v ?? '').trim();
-  if (s.isEmpty) return 'Enter a code.';
-  return RegExp('^[A-Z0-9]{$min,$max}\$').hasMatch(s) ? null : 'Codes are $min to $max letters and numbers.';
+  if (s.isEmpty) return tr('Enter a code.');
+  return RegExp('^[A-Z0-9]{$min,$max}\$').hasMatch(s) ? null : tr('Codes are {min} to {max} letters and numbers.', {'min': min, 'max': max});
 }
 
 // Indian mobile ----------------------------------------------------------------
@@ -281,8 +282,8 @@ class IndianMobileFormatter extends TextInputFormatter {
 String? validateMobile(String? v) {
   final digits = _digitsOf(v ?? '');
   if (normalizeIndianPhone(digits) != null) return null;
-  if (digits.length != 10) return 'Enter a 10-digit mobile number.';
-  return 'Mobile numbers start with 6, 7, 8 or 9.';
+  if (digits.length != 10) return tr('Enter a 10-digit mobile number.');
+  return tr('Mobile numbers start with 6, 7, 8 or 9.');
 }
 
 // Other formats ----------------------------------------------------------------
@@ -337,8 +338,8 @@ String normalizeEmail(String s) => tidy(s).replaceAll(' ', '').toLowerCase();
 /// Null for a plausible address: one @, a dot in the domain, no spaces or empty parts, ≤254 characters.
 String? validateEmail(String? v) {
   final e = normalizeEmail(v ?? '');
-  if (e.isEmpty) return 'Enter your email address.';
-  return e.length <= MaxLen.email && e.indexOf('@') <= 64 && _email.hasMatch(e) ? null : 'Enter a valid email address.';
+  if (e.isEmpty) return tr('Enter your email address.');
+  return e.length <= MaxLen.email && e.indexOf('@') <= 64 && _email.hasMatch(e) ? null : tr('Enter a valid email address.');
 }
 
 /// Formatters for an email field: no spaces, nothing invisible, ≤254.
@@ -358,7 +359,7 @@ class LengthCounter extends StatelessWidget {
         builder: (context, _) {
           final n = controller.text.runes.length;
           return Semantics(
-            label: '${max - n} characters left',
+            label: tr('{n} characters left', {'n': max - n}),
             excludeSemantics: true,
             child: Text('$n/$max', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
           );

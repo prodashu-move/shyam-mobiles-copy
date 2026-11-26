@@ -12,6 +12,7 @@ import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../catalog/data/hero.dart';
 import 'offer_widgets.dart';
+import '../../../core/i18n.dart';
 
 /// One solid, rich tone per banner (palette v2's deep shades): the banner's tone index (0..5, as the admin sets it)
 /// picks it. White text, the 18% kicker pill and the product-side light all stay 4.5:1 on each (hero_card_test).
@@ -171,7 +172,7 @@ class HeroCard extends StatelessWidget {
                                                   caps: true,
                                                 )
                                               : Text(
-                                                  kicker.toUpperCase(),
+                                                  tr(kicker).toUpperCase(),
                                                   maxLines: 1,
                                                   overflow:
                                                       TextOverflow.ellipsis,
@@ -527,7 +528,7 @@ String? heroValueLine(PromoBanner b, Offer? o) {
     return [
       offerHeadline(o),
       if (o.kind == OfferKind.percent && o.maxDiscountPaise != null)
-        'up to ${formatInr(o.maxDiscountPaise!)}',
+        tr('up to {v}', {'v': formatInr(o.maxDiscountPaise!)}),
     ].join(' · ');
   }
   final s = b.subtitle.trim().split('\n').first.trim();
@@ -579,7 +580,7 @@ class PromoBannerCard extends StatelessWidget {
       onTap: onTap ?? () {},
       visual: HeroVisual(items: items, icon: icon, photo: photo),
       semanticsLabel: heroLabel(
-        kicker == 'OFFER' ? 'Offer' : _sentence(kicker),
+        kicker == 'OFFER' ? tr('Offer') : _sentence(tr(kicker)),
         banner.title,
         cta,
         endsAt: banner.endsAt,

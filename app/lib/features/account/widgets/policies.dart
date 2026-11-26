@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../../../core/i18n.dart';
 import '../../../core/theme/tokens.dart';
 
 /// Our public pages (firebase/hosting, at POLICIES_URL; Play needs them as real URLs): route key → the app bar's
@@ -47,7 +48,7 @@ class PolicyRows extends StatelessWidget {
               minTileHeight: 56,
               contentPadding: const EdgeInsets.symmetric(horizontal: Space.gutter),
               leading: Icon(icon),
-              title: Text(policyPages[page]!),
+              title: Text(tr(policyPages[page]!)),
               trailing: Icon(PhosphorIconsRegular.caretRight, size: IconSizes.sm, color: Theme.of(context).colorScheme.onSurfaceVariant),
               onTap: () => openPolicy(context, page),
             ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart' show Placemark;
 import 'package:http/http.dart' as http;
 
+import '../../../core/i18n.dart';
 import '../../../core/input.dart';
 
 /// 28 states + 8 union territories, as India Post spells them today.
@@ -56,10 +57,10 @@ String? validateLine2(String? v) => checkText(v, max: MaxLen.addressLine);
 String? validateLandmark(String? v) => checkText(v, max: MaxLen.landmark);
 String? validateCity(String? v) => checkText(v, min: 2, max: MaxLen.place, what: 'a city', mustHave: hasLetter);
 String? validateDistrict(String? v) => checkText(v, max: MaxLen.place, mustHave: hasLetter);
-String? validateState(String? v) => v == null || v.isEmpty ? 'Pick a state.' : null;
+String? validateState(String? v) => v == null || v.isEmpty ? tr('Pick a state.') : null;
 String? validatePhone(String? v) => validateMobile(v);
 String? validatePincode(String? v) =>
-    RegExp(r'^[1-9][0-9]{5}$').hasMatch((v ?? '').trim()) ? null : 'Enter a 6-digit pincode.';
+    RegExp(r'^[1-9][0-9]{5}$').hasMatch((v ?? '').trim()) ? null : tr('Enter a 6-digit pincode.');
 
 /// `areas` are the pincode's post-office names, offered as one-tap areas.
 typedef PincodePlace = ({String district, String? state, List<String> areas});

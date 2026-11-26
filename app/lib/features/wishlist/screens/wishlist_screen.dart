@@ -10,6 +10,7 @@ import '../../../core/widgets/widgets.dart';
 import '../../cart/widgets/cart_button.dart';
 import '../../catalog/widgets/product_tile.dart';
 import '../data/wishlist.dart';
+import '../../../core/i18n.dart';
 
 class WishlistScreen extends ConsumerWidget {
   const WishlistScreen({super.key});
@@ -19,7 +20,7 @@ class WishlistScreen extends ConsumerWidget {
     // hearts update the id set at once; the card list catches up after its refetch
     final ids = ref.watch(wishlistProvider).value ?? const <String>{};
     return Scaffold(
-      appBar: AppBar(title: const Text('Wishlist'), actions: const [CartButton()]),
+      appBar: AppBar(title: Text(tr('Wishlist')), actions: const [CartButton()]),
       body: AsyncBody(
         value: ref.watch(wishlistCardsProvider),
         onRetry: () => ref.invalidate(wishlistProvider),
@@ -39,12 +40,12 @@ class WishlistScreen extends ConsumerWidget {
             return EmptyState(
               icon: PhosphorIconsRegular.heartBreak,
               tone: Worlds.account,
-              title: 'Your saved items are no longer sold',
-              message: 'The shop stopped selling what you saved. Have a look at what’s in stock.',
+              title: tr('Your saved items are no longer sold'),
+              message: tr('The shop stopped selling what you saved. Have a look at what’s in stock.'),
               action: FilledButton.icon(
                 onPressed: () => context.go('/search?category=smartphones'),
                 icon: const Icon(PhosphorIconsRegular.storefront),
-                label: const Text('Shop phones'),
+                label: Text(tr('Shop phones')),
               ),
             );
           }
@@ -52,12 +53,12 @@ class WishlistScreen extends ConsumerWidget {
             return EmptyState(
               icon: PhosphorIconsRegular.heart,
               tone: Worlds.account,
-              title: 'Nothing saved yet',
-              message: 'Tap the heart on any phone to keep it here, and find it again in a tap.',
+              title: tr('Nothing saved yet'),
+              message: tr('Tap the heart on any phone to keep it here, and find it again in a tap.'),
               action: FilledButton.icon(
                 onPressed: () => context.go('/search?category=smartphones'),
                 icon: const Icon(PhosphorIconsRegular.storefront),
-                label: const Text('Shop phones'),
+                label: Text(tr('Shop phones')),
               ),
             );
           }
@@ -80,7 +81,7 @@ class WishlistScreen extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.md),
                         child: Text(
-                          'Some saved items are no longer sold, so they’re not shown.',
+                          tr('Some saved items are no longer sold, so they’re not shown.'),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ),

@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/format.dart';
+import '../../../core/i18n.dart';
 import '../../../core/models/models.dart';
 import '../../../core/theme/tokens.dart';
 import '../data/addresses.dart';
@@ -55,10 +56,10 @@ class DeliverToRow extends ConsumerWidget {
               const SizedBox(width: Space.sm),
               Expanded(
                 child: a == null
-                    ? Text('Add a delivery address', style: t.bodyMedium?.copyWith(fontWeight: FontWeight.w600))
+                    ? Text(tr('Add a delivery address'), style: t.bodyMedium?.copyWith(fontWeight: FontWeight.w600))
                     : Text.rich(
                         TextSpan(children: [
-                          const TextSpan(text: 'Deliver to '),
+                          TextSpan(text: tr('Deliver to ')),
                           TextSpan(text: a.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                           TextSpan(text: ' · ${a.city} ${a.pincode}'),
                         ]),
@@ -69,7 +70,8 @@ class DeliverToRow extends ConsumerWidget {
               ),
               TextButton(
                 onPressed: act,
-                child: Text(a == null ? 'Add' : 'Change', semanticsLabel: a == null ? 'Add a delivery address' : 'Change delivery address'),
+                child: Text(a == null ? tr('Add') : tr('Change'),
+                    semanticsLabel: a == null ? tr('Add a delivery address') : tr('Change delivery address')),
               ),
             ],
           ),
@@ -96,7 +98,7 @@ class _AddressSheet extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(Space.xl, 0, Space.xl, Space.sm),
-            child: Semantics(header: true, child: Text('Deliver to', style: t.titleLarge)),
+            child: Semantics(header: true, child: Text(tr('Deliver to'), style: t.titleLarge)),
           ),
           Flexible(
             child: RadioGroup<String>(
@@ -119,7 +121,7 @@ class _AddressSheet extends StatelessWidget {
           const Divider(),
           ListTile(
             leading: Icon(PhosphorIconsRegular.plus, color: c.primary),
-            title: Text('Add new address', style: t.titleSmall?.copyWith(color: c.primary)),
+            title: Text(tr('Add new address'), style: t.titleSmall?.copyWith(color: c.primary)),
             onTap: () => Navigator.pop(context, _addNew),
           ),
         ],

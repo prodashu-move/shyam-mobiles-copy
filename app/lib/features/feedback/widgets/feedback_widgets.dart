@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/errors.dart';
+import '../../../core/i18n.dart';
 import '../../../core/input.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/picker.dart';
@@ -23,7 +24,7 @@ class StarRating extends StatelessWidget {
     final v = value ?? 0;
     if (onChanged == null) {
       return Semantics(
-        label: value == null ? 'Not rated' : '$v of 5 stars',
+        label: value == null ? tr('Not rated') : tr('{n} of 5 stars', {'n': v}),
         excludeSemantics: true,
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           for (var i = 1; i <= 5; i++)
@@ -36,7 +37,7 @@ class StarRating extends StatelessWidget {
       children: [
         for (var i = 1; i <= 5; i++)
           IconButton(
-            tooltip: '$i star${i == 1 ? '' : 's'}',
+            tooltip: i == 1 ? tr('1 star') : tr('{n} stars', {'n': i}),
             isSelected: i <= v,
             onPressed: () => onChanged!(i),
             icon: Icon(i <= v ? PhosphorIconsFill.star : PhosphorIconsRegular.star, size: size, color: BrandColors.gold),
@@ -76,7 +77,7 @@ Future<bool> showFeedbackSheet(
       screen: screen,
     ),
   );
-  if (sent == true && context.mounted) showMessage(context, 'Thank you. The shop reads every message.');
+  if (sent == true && context.mounted) showMessage(context, tr('Thank you. The shop reads every message.'));
   return sent == true;
 }
 
@@ -125,7 +126,7 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
     if (_busy) return;
     final message = tidy(_message.text, multiline: true);
     // the DB keeps a row only with a rating or some words
-    if (_rating == null && message.isEmpty) return setState(() => _error = 'Pick a star or write a few words.');
+    if (_rating == null && message.isEmpty) return setState(() => _error = tr('Pick a star or write a few words.'));
     setState(() {
       _busy = true;
       _error = null;
@@ -164,9 +165,9 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
             const SizedBox(height: Space.md),
             if (widget.kinds.length > 1) ...[
               PickerField<FeedbackKind>(
-                label: 'About',
+                label: tr('About'),
                 options: widget.kinds,
-                labelOf: (k) => k == FeedbackKind.bug ? 'Something isn’t working' : 'An idea or a comment',
+                labelOf: (k) => k == FeedbackKind.bug ? tr('Something isn’t working') : tr('An idea or a comment'),
                 initialValue: _kind,
                 onChanged: (k) => setState(() => _kind = k),
               ),
@@ -177,7 +178,7 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
             TextField(
               controller: _message,
               decoration: InputDecoration(
-                labelText: widget.hint,
+                labelText: tr(widget.hint),
                 alignLabelWithHint: true,
                 counter: LengthCounter(_message, maxFeedbackMessage),
               ),
@@ -195,7 +196,7 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
               onPressed: _busy ? null : _send,
               child: _busy
                   ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Send'),
+                  : Text(tr('Send')),
             ),
           ],
         ),
@@ -244,14 +245,16 @@ class RateCard extends ConsumerWidget {
           children: [
             Text(title, style: t.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
             Text(
-              mine?.rating == null ? 'Tap a star. It helps the shop and other buyers.' : 'Thanks for rating. Tap to change it.',
+              mine?.rating == null
+                  ? tr('Tap a star. It helps the shop and other buyers.')
+                  : tr('Thanks for rating. Tap to change it.'),
               style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
             ),
             Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 StarRating(value: mine?.rating, onChanged: rate),
-                if (mine != null) TextButton(onPressed: () => rate(null), child: const Text('Change')),
+                if (mine != null) TextButton(onPressed: () => rate(null), child: Text(tr('Change'))),
               ],
             ),
           ],
@@ -275,13 +278,13 @@ class ReportListingLink extends StatelessWidget {
           child: TextButton.icon(
             onPressed: () => showFeedbackSheet(
               context,
-              title: 'Report a problem with this listing',
+              title: tr('Report a problem with this listing'),
               kinds: const [FeedbackKind.product],
               productId: productId,
-              hint: 'What’s wrong? A price, photo or detail',
+              hint: tr('What’s wrong? A price, photo or detail'),
             ),
             icon: const Icon(PhosphorIconsRegular.flag, size: 18),
-            label: const Text('Report a problem with this listing'),
+            label: Text(tr('Report a problem with this listing')),
           ),
         ),
       );

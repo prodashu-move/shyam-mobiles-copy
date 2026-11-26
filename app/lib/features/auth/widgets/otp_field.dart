@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../../core/i18n.dart';
 import '../../../core/input.dart';
 import '../../../core/theme/tokens.dart';
 
@@ -83,9 +84,9 @@ class OtpField extends StatelessWidget {
             inputFormatters: const [DigitsFormatter(otpLength)],
             showCursor: false,
             style: const TextStyle(color: Colors.transparent),
-            decoration: const InputDecoration(
-              labelText: '6-digit code',
-              labelStyle: TextStyle(color: Colors.transparent),
+            decoration: InputDecoration(
+              labelText: tr('6-digit code'),
+              labelStyle: const TextStyle(color: Colors.transparent),
               floatingLabelBehavior: FloatingLabelBehavior.never,
               filled: false,
               border: none,

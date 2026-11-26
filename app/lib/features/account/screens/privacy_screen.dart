@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/errors.dart';
+import '../../../core/i18n.dart';
 import '../../../core/supabase.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/widgets.dart';
@@ -43,26 +44,26 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
     final privacy = ref.read(privacyProvider.notifier);
     final c = choices.value;
     return Scaffold(
-      appBar: AppBar(title: const Text('Privacy')),
+      appBar: AppBar(title: Text(tr('Privacy'))),
       body: ListView(
         padding: const EdgeInsets.only(bottom: Space.xl),
         children: [
           SwitchListTile(
-            title: const Text('Help improve the app'),
-            subtitle: const Text('Share which screens and products you use. Never your name, number or address.'),
+            title: Text(tr('Help improve the app')),
+            subtitle: Text(tr('Share which screens and products you use. Never your name, number or address.')),
             value: c?.analytics ?? false,
             onChanged: c == null ? null : privacy.setAnalytics,
           ),
           SwitchListTile(
-            title: const Text('Send crash reports'),
-            subtitle: const Text('When the app breaks, send what went wrong, with nothing about you.'),
+            title: Text(tr('Send crash reports')),
+            subtitle: Text(tr('When the app breaks, send what went wrong, with nothing about you.')),
             value: c?.crashReports ?? true,
             onChanged: c == null ? null : privacy.setCrashReports,
           ),
           const Divider(),
           ListTile(
-            title: const Text('Download my data'),
-            subtitle: const Text('Your profile, addresses, orders, repairs and messages, as one file. Once a day.'),
+            title: Text(tr('Download my data')),
+            subtitle: Text(tr('Your profile, addresses, orders, repairs and messages, as one file. Once a day.')),
             trailing: _exporting ? const ButtonSpinner() : null,
             onTap: _exporting ? null : _download,
           ),

@@ -7,6 +7,7 @@ import '../../../core/format.dart';
 import '../../../core/models/models.dart';
 import '../../../core/supabase.dart';
 import 'cart_repository.dart';
+import '../../../core/i18n.dart';
 
 /// "Galaxy A15 is no longer available and was removed from your cart." for [CartNotifier.takeRemoved]'s names.
 String removedNotice(List<String?> names) {
@@ -14,13 +15,15 @@ String removedNotice(List<String?> names) {
   final unknown = names.length - names.nonNulls.length;
   if (known.isEmpty) {
     return unknown == 1
-        ? 'An item in your cart is no longer available and was removed.'
-        : '$unknown items in your cart are no longer available and were removed.';
+        ? tr('An item in your cart is no longer available and was removed.')
+        : tr('{n} items in your cart are no longer available and were removed.', {'n': unknown});
   }
-  final list = known.length == 1 ? known.first : '${known.take(known.length - 1).join(', ')} and ${known.last}';
-  final more = unknown == 0 ? '' : ' (and $unknown more)';
-  return '$list$more ${known.length + unknown == 1 ? 'is' : 'are'} no longer available and '
-      '${known.length + unknown == 1 ? 'was' : 'were'} removed from your cart.';
+  final list = known.length == 1 ? known.first : tr('{a} and {b}', {'a': known.take(known.length - 1).join(', '), 'b': known.last});
+  final more = unknown == 0 ? '' : tr(' (and {n} more)', {'n': unknown});
+  final tail = known.length + unknown == 1
+      ? tr('is no longer available and was removed from your cart.')
+      : tr('are no longer available and were removed from your cart.');
+  return '$list$more $tail';
 }
 
 /// Most of one variant a customer can hold in the cart (DB check allows 1..5).

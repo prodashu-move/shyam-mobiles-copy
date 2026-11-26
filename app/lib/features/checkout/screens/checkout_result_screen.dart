@@ -21,6 +21,7 @@ import '../../cart/data/cart.dart';
 import '../../orders/data/orders.dart';
 import '../data/payment.dart';
 import 'widgets.dart';
+import '../../../core/i18n.dart';
 
 enum ResultView { success, waiting, retry, expired, cancelled, refundDue }
 
@@ -106,7 +107,7 @@ class _CheckoutResultScreenState extends ConsumerState<CheckoutResultScreen> {
     try {
       final added = await reorder(ref.read(supabaseProvider), ref.read(cartProvider.notifier), o);
       if (added < o.items.length) {
-        showMessageOn(messenger, added == 0 ? 'These items are out of stock now.' : 'Some items are out of stock now.');
+        showMessageOn(messenger, added == 0 ? tr('These items are out of stock now.') : tr('Some items are out of stock now.'));
       }
     } catch (e) {
       showMessageOn(messenger, friendlyError(e));
@@ -150,7 +151,7 @@ class _CheckoutResultScreenState extends ConsumerState<CheckoutResultScreen> {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leading: IconButton(
-            tooltip: 'Close',
+            tooltip: tr('Close'),
             onPressed: () => context.go('/'),
             icon: const Icon(PhosphorIconsRegular.x),
           ),
@@ -164,9 +165,9 @@ class _CheckoutResultScreenState extends ConsumerState<CheckoutResultScreen> {
     final c = Theme.of(context).colorScheme;
     final total = formatInr(o.totalPaise);
     final name = firstName(ref.watch(profileProvider).value?.fullName);
-    final thanks = name == null ? 'Thank you.' : 'Thank you, $name.';
-    final viewOrder = OutlinedButton(onPressed: () => context.go('/orders/${o.id}'), child: const Text('View order'));
-    final backToCart = FilledButton(onPressed: () => _reorder(o), child: const Text('Add items to cart again'));
+    final thanks = name == null ? tr('Thank you.') : tr('Thank you, {name}.', {'name': name});
+    final viewOrder = OutlinedButton(onPressed: () => context.go('/orders/${o.id}'), child: Text(tr('View order')));
+    final backToCart = FilledButton(onPressed: () => _reorder(o), child: Text(tr('Add items to cart again')));
     return switch (view) {
       ResultView.success => _Layout(
         // the feather's dots ripple out once, then the tick pops
@@ -177,14 +178,14 @@ class _CheckoutResultScreenState extends ConsumerState<CheckoutResultScreen> {
             _Badge(icon: PhosphorIconsBold.check, bg: c.secondary, fg: c.onSecondary, animate: true),
           ],
         ),
-        title: o.paymentMethod == PaymentMethod.cod ? 'Order placed' : 'Payment received',
+        title: o.paymentMethod == PaymentMethod.cod ? tr('Order placed') : tr('Payment received'),
         message: o.paymentMethod == PaymentMethod.cod
-            ? '$thanks Pay $total in cash when it arrives.'
-            : '$thanks We’ll pack your order soon.',
+            ? '$thanks ${tr('Pay {amt} in cash when it arrives.', {'amt': total})}'
+            : '$thanks ${tr('We’ll pack your order soon.')}',
         number: o.number,
         actions: [
-          FilledButton(onPressed: () => context.go('/orders/${o.id}'), child: const Text('View order')),
-          OutlinedButton(onPressed: () => context.go('/'), child: const Text('Continue shopping')),
+          FilledButton(onPressed: () => context.go('/orders/${o.id}'), child: Text(tr('View order'))),
+          OutlinedButton(onPressed: () => context.go('/'), child: Text(tr('Continue shopping'))),
         ],
       ),
       ResultView.waiting => _Layout(
@@ -192,26 +193,26 @@ class _CheckoutResultScreenState extends ConsumerState<CheckoutResultScreen> {
           dimension: 88,
           child: Padding(
             padding: const EdgeInsets.all(Space.xl),
-            child: CircularProgressIndicator(strokeWidth: 3, color: c.primary, semanticsLabel: 'Checking payment'),
+            child: CircularProgressIndicator(strokeWidth: 3, color: c.primary, semanticsLabel: tr('Checking payment')),
           ),
         ),
-        title: 'Waiting for payment',
-        message: 'If you paid in your UPI app, this updates by itself. It can take up to 30 seconds. $_notLost',
+        title: tr('Waiting for payment'),
+        message: '${tr('If you paid in your UPI app, this updates by itself. It can take up to 30 seconds.')} ${tr(_notLost)}',
         number: o.number,
         actions: [viewOrder],
       ),
       ResultView.retry => _Layout(
         visual: _Badge(icon: PhosphorIconsBold.clockCountdown, bg: c.tertiaryContainer, fg: c.onTertiaryContainer),
-        title: 'Payment not finished',
+        title: tr('Payment not finished'),
         message:
-            'We’re holding your items until ${DateFormat('h:mm a').format(o.reservedUntil!.toLocal())}. '
-            'Pay now to confirm the order. $_notLost',
+            '${tr('We’re holding your items until {time}.', {'time': DateFormat('h:mm a').format(o.reservedUntil!.toLocal())})} '
+            '${tr('Pay now to confirm the order.')} ${tr(_notLost)}',
         number: o.number,
         actions: [
           FilledButton(
             onPressed: stage == PayStage.idle ? _retry : null,
             child: Text(
-              stage == PayStage.idle ? 'Retry payment · $total' : stage.label,
+              stage == PayStage.idle ? tr('Retry payment · {amt}', {'amt': total}) : tr(stage.label),
               style: const TextStyle(fontFeatures: tabularFigures),
             ),
           ),
@@ -220,10 +221,10 @@ class _CheckoutResultScreenState extends ConsumerState<CheckoutResultScreen> {
       ),
       ResultView.expired || ResultView.cancelled => _Layout(
         visual: const _Badge(icon: PhosphorIconsBold.x, bg: BrandColors.graphite, fg: Colors.white), // closed, not an error
-        title: view == ResultView.expired ? 'Payment time ran out' : 'Order cancelled',
+        title: view == ResultView.expired ? tr('Payment time ran out') : tr('Order cancelled'),
         message: view == ResultView.expired
-            ? 'We couldn’t hold the items any longer, so this order won’t go through. Add them again to order.'
-            : o.events.lastOrNull?.note ?? 'This order won’t go through.',
+            ? tr('We couldn’t hold the items any longer, so this order won’t go through. Add them again to order.')
+            : o.events.lastOrNull?.note ?? tr('This order won’t go through.'),
         number: o.number,
         actions: [backToCart, viewOrder],
       ),
@@ -233,12 +234,12 @@ class _CheckoutResultScreenState extends ConsumerState<CheckoutResultScreen> {
           bg: c.tertiaryContainer,
           fg: c.onTertiaryContainer,
         ),
-        title: 'Payment arrived late',
-        message: 'The order had already closed, so the shop will refund $total. Call us if you have questions.',
+        title: tr('Payment arrived late'),
+        message: tr('The order had already closed, so the shop will refund {amt}. Call us if you have questions.', {'amt': total}),
         number: o.number,
         actions: [
-          FilledButton(onPressed: () => context.go('/orders/${o.id}'), child: const Text('View order')),
-          OutlinedButton(onPressed: () => context.go('/'), child: const Text('Continue shopping')),
+          FilledButton(onPressed: () => context.go('/orders/${o.id}'), child: Text(tr('View order'))),
+          OutlinedButton(onPressed: () => context.go('/'), child: Text(tr('Continue shopping'))),
         ],
       ),
     };
@@ -312,7 +313,7 @@ class _Layout extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: Space.lg),
-              Center(child: Tag('Order $number')),
+              Center(child: Tag(tr('Order {number}', {'number': number}))),
               const SizedBox(height: Space.xxl),
               for (final (i, a) in actions.indexed) ...[if (i > 0) const SizedBox(height: Space.md), a],
             ],

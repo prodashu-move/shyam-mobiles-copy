@@ -14,11 +14,12 @@ import '../../cart/widgets/cart_button.dart';
 import '../../catalog/widgets/product_tile.dart';
 import '../data/offers.dart';
 import '../widgets/offer_widgets.dart';
+import '../../../core/i18n.dart';
 
 /// "Apply" from Offers: the code goes with the cart, which checks it and shows the saving.
 void applyFromOffers(BuildContext context, WidgetRef ref, String code) {
   ref.read(couponCodeProvider.notifier).set(code);
-  showMessage(context, '$code added to your cart. You’ll see the saving there.');
+  showMessage(context, tr('{code} added to your cart. You’ll see the saving there.', {'code': code}));
   context.go('/cart');
 }
 
@@ -41,7 +42,7 @@ class OffersScreen extends ConsumerWidget {
     final offers = ref.watch(availableOffersProvider);
     final applied = ref.watch(couponCodeProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Offers & coupons'), actions: const [CartButton()]),
+      appBar: AppBar(title: Text(tr('Offers & coupons')), actions: const [CartButton()]),
       body: AsyncBody<List<Offer>>(
         value: offers,
         onRetry: () => ref.invalidate(availableOffersProvider),
@@ -56,9 +57,9 @@ class OffersScreen extends ConsumerWidget {
             ? EmptyState(
                 icon: PhosphorIconsRegular.sealPercent,
                 tone: Worlds.offers,
-                title: 'No offers right now',
-                message: 'New coupons and sales show up here. Check back soon.',
-                action: FilledButton(onPressed: () => context.go('/'), child: const Text('Keep shopping')),
+                title: tr('No offers right now'),
+                message: tr('New coupons and sales show up here. Check back soon.'),
+                action: FilledButton(onPressed: () => context.go('/'), child: Text(tr('Keep shopping'))),
               )
             : RefreshIndicator(
                 onRefresh: () => ref.refresh(availableOffersProvider.future),
@@ -91,7 +92,7 @@ class OfferDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final offers = ref.watch(availableOffersProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Offer'), actions: [
+      appBar: AppBar(title: Text(tr('Offer')), actions: [
         if (offers.value?.where((o) => o.id == offerId).firstOrNull case final o?)
           ShareButton(
             what: '${offerHeadline(o)} at Shyam Mobiles: ${o.title}${o.code == null ? '' : ' · code ${o.code}'}',
@@ -108,9 +109,9 @@ class OfferDetailScreen extends ConsumerWidget {
           null => EmptyState(
               icon: PhosphorIconsRegular.hourglass,
               tone: Worlds.offers,
-              title: 'This offer has ended',
-              message: 'Have a look at what’s on now.',
-              action: FilledButton(onPressed: () => context.pushReplacement('/offers'), child: const Text('See offers')),
+              title: tr('This offer has ended'),
+              message: tr('Have a look at what’s on now.'),
+              action: FilledButton(onPressed: () => context.pushReplacement('/offers'), child: Text(tr('See offers'))),
             ),
         },
       ),
@@ -134,7 +135,7 @@ class _Detail extends ConsumerWidget {
     final applied = ref.watch(couponCodeProvider) == o.code;
     final terms = [
       ...offerTerms(o),
-      if (o.endsAt != null) 'Valid till ${formatDateTime(o.endsAt!)}',
+      if (o.endsAt != null) tr('Valid till {d}', {'d': formatDateTime(o.endsAt!)}),
     ];
     return RefreshIndicator(
       onRefresh: () {
@@ -170,10 +171,10 @@ class _Detail extends ConsumerWidget {
                     if (o.code case final code?)
                       CodeActions(code: code, applied: applied, onApply: () => applyFromOffers(context, ref, code))
                     else
-                      const Tag('No code needed: it applies at checkout', tone: TagTone.ok, icon: PhosphorIconsBold.check),
+                      Tag(tr('No code needed: it applies at checkout'), tone: TagTone.ok, icon: PhosphorIconsBold.check),
                     if (terms.isNotEmpty) ...[
                       const SizedBox(height: Space.lg),
-                      Text('Terms', style: t.titleSmall),
+                      Text(tr('Terms'), style: t.titleSmall),
                       const SizedBox(height: Space.xs),
                       for (final line in terms)
                         Padding(
@@ -192,13 +193,13 @@ class _Detail extends ConsumerWidget {
                 ),
               ),
             ),
-            SliverToBoxAdapter(child: SectionHeader(o.wholeOrder ? 'Works on everything, like' : 'Products in this offer', gutter: Space.gutter)),
+            SliverToBoxAdapter(child: SectionHeader(tr(o.wholeOrder ? 'Works on everything, like' : 'Products in this offer'), gutter: Space.gutter)),
             ...switch (products) {
               AsyncValue(value: final page?) when page.items.isEmpty => [
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-                      child: Text('Nothing in stock for this offer right now.', style: t.bodyMedium),
+                      child: Text(tr('Nothing in stock for this offer right now.'), style: t.bodyMedium),
                     ),
                   ),
                 ],
@@ -209,7 +210,7 @@ class _Detail extends ConsumerWidget {
                       child: PagedFooter(
                         failed: page.moreFailed,
                         onRetry: () => ref.read(offerProductsProvider(o.id).notifier).loadMore(retry: true),
-                        what: 'more products',
+                        what: tr('more products'),
                       ),
                     ),
                 ],

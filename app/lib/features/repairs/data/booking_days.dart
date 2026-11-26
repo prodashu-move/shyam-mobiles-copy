@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import '../../../core/models/models.dart';
+import '../../../core/i18n.dart';
 
 /// The shop runs on India time whatever the phone's zone is set to (the RLS date window is IST too).
 const istOffset = Duration(hours: 5, minutes: 30);
@@ -38,4 +39,4 @@ bool isIstToday(DateTime day, DateTime now) {
 }
 
 /// "today" or "Thu 30 Oct".
-String bookingDayLabel(DateTime day, DateTime now) => isIstToday(day, now) ? 'today' : DateFormat('EEE d MMM').format(day);
+String bookingDayLabel(DateTime day, DateTime now) => isIstToday(day, now) ? tr('today') : DateFormat('EEE d MMM').format(day);

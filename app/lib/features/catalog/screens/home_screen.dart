@@ -34,6 +34,7 @@ import '../widgets/instagram_row.dart';
 import '../widgets/home_sections.dart';
 import '../widgets/product_tile.dart';
 import '../widgets/store_photos.dart';
+import '../../../core/i18n.dart';
 
 /// Built to sell: a pinned bar (brand, WhatsApp, call, a search whose hint cycles), the carousel of offers and
 /// featured products, the customer's unfinished cart, why to buy here, the categories, coupons to tap, what they
@@ -105,14 +106,14 @@ class HomeScreen extends ConsumerWidget {
   List<Widget> _sections(BuildContext context, WidgetRef ref, HomeData d, StoreSettings? settings,
       {required bool saver}) {
     if (d.categories.isEmpty && d.featured.isEmpty && d.accessories.isEmpty) {
-      return const [
+      return [
         SliverFillRemaining(
-          key: ValueKey('empty'),
+          key: const ValueKey('empty'),
           hasScrollBody: false,
           child: EmptyState(
             icon: PhosphorIconsRegular.storefront,
-            title: 'The shelves are empty',
-            message: 'New stock is on its way. Pull down to check again.',
+            title: tr('The shelves are empty'),
+            message: tr('New stock is on its way. Pull down to check again.'),
           ),
         ),
       ];
@@ -150,9 +151,9 @@ class HomeScreen extends ConsumerWidget {
           build: (photo) => PromoBannerCard(
                 PromoBanner(
                   id: 'auto-instagram',
-                  title: 'New stock first on Instagram',
-                  subtitle: '@$ig · offers, unboxings, new arrivals',
-                  ctaLabel: 'Follow the shop',
+                  title: tr('New stock first on Instagram'),
+                  subtitle: tr('@{ig} · offers, unboxings, new arrivals', {'ig': ig}),
+                  ctaLabel: tr('Follow the shop'),
                   link: '/',
                   startsAt: DateTime(2026),
                 ),
@@ -187,7 +188,7 @@ class HomeScreen extends ConsumerWidget {
         SliverToBoxAdapter(
           key: const ValueKey('phones'),
           child: ProductRail(
-            title: 'Featured phones',
+            title: tr('Featured phones'),
             band: sectionTints.explore, // neutral: the one tinted panel on Home is the deals'
             value: AsyncData(phones),
             onSeeAll: () => context.go('/search?category=$phoneCategory'),
@@ -199,7 +200,7 @@ class HomeScreen extends ConsumerWidget {
         SliverToBoxAdapter(
           key: const ValueKey('deals'),
           child: ProductRail(
-            title: 'Deals under ₹1,500',
+            title: tr('Deals under ₹1,500'),
             band: sectionTints.deals,
             value: AsyncData(d.accessories),
             onSeeAll: () => context.go('/search?max=150000'),
@@ -228,7 +229,7 @@ class HomeScreen extends ConsumerWidget {
         key: const ValueKey('more'),
         child: Column(
           children: [
-            SectionHeader('New in the shop', gutter: Space.gutter, onSeeAll: () => context.go('/search?sort=newest')),
+            SectionHeader(tr('New in the shop'), gutter: Space.gutter, onSeeAll: () => context.go('/search?sort=newest')),
             for (var i = 0; i < more.length; i += 2)
               Padding(
                 padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.md),
@@ -260,7 +261,7 @@ class HomeScreen extends ConsumerWidget {
           for (var i = 0; i < 6; i++)
             Category(id: '$i', slug: 'skeleton-$i', name: 'Category', kind: CategoryKind.accessory),
         ]),
-        ProductRail(title: 'Featured phones', value: AsyncData(fakeCards(3))),
+        ProductRail(title: tr('Featured phones'), value: AsyncData(fakeCards(3))),
       ],
     ),
   );
@@ -312,17 +313,16 @@ class _TopBar extends SliverPersistentHeaderDelegate {
                       ),
                     ),
                   ),
-                  const LanguageButton(),
                   const NotificationBell(), // left of Call; nothing when signed out
                   IconButton(
-                    tooltip: 'WhatsApp the shop',
+                    tooltip: tr('WhatsApp the shop'),
                     icon: const WhatsAppIcon(),
                     onPressed: s == null
                         ? null
-                        : () => openUri(context, whatsAppUri(s.storePhone, text: 'Hi, I have a question.')),
+                        : () => openUri(context, whatsAppUri(s.storePhone, text: tr('Hi, I have a question.'))),
                   ),
                   IconButton(
-                    tooltip: 'Call the shop',
+                    tooltip: tr('Call the shop'),
                     icon: const Icon(PhosphorIconsRegular.phone),
                     onPressed: s == null ? null : () => openUri(context, telUri(s.storePhone)),
                   ),
@@ -354,7 +354,7 @@ class _OfflineBanner extends StatelessWidget {
               Icon(PhosphorIconsRegular.wifiSlash, size: 18, color: c.onSurfaceVariant),
               const SizedBox(width: Space.sm),
               Expanded(
-                child: Text('You’re offline · showing saved items', style: Theme.of(context).textTheme.bodySmall),
+                child: Text(tr('You’re offline · showing saved items'), style: Theme.of(context).textTheme.bodySmall),
               ),
             ],
           ),
@@ -371,9 +371,12 @@ class _SearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = Theme.of(context).colorScheme;
     final hint = Theme.of(context).textTheme.bodyMedium?.copyWith(color: c.onSurfaceVariant);
+    // the language switch sits beside the search, not in the bar above: that row needs its width for the wordmark
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.sm),
-      child: Material(
+      padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.sm, Space.sm),
+      child: Row(children: [
+        Expanded(
+          child: Material(
         color: c.surfaceContainerLowest,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Radii.md),
@@ -397,6 +400,9 @@ class _SearchField extends StatelessWidget {
           ),
         ),
       ),
+        ),
+        const LanguageButton(),
+      ]),
     );
   }
 }
@@ -406,13 +412,13 @@ Widget _autoPromo(BuildContext context, AutoBanner kind, List<ProductCard> pool,
     ? PromoBannerCard(
         PromoBanner(
           id: 'auto-exchange',
-          title: 'Exchange your old phone',
-          subtitle: 'Trade in for a better one',
-          ctaLabel: 'Get an estimate',
+          title: tr('Exchange your old phone'),
+          subtitle: tr('Trade in for a better one'),
+          ctaLabel: tr('Get an estimate'),
           link: '/',
           startsAt: DateTime(2026),
         ),
-        kicker: 'EXCHANGE',
+        kicker: tr('EXCHANGE'),
         fan: HeroFan.exchange,
         icon: PhosphorIconsFill.arrowsClockwise,
         pool: pool,
@@ -422,13 +428,13 @@ Widget _autoPromo(BuildContext context, AutoBanner kind, List<ProductCard> pool,
     : PromoBannerCard(
         PromoBanner(
           id: 'auto-repairs',
-          title: 'Repairs · same day',
-          subtitle: 'Screens, batteries, charging ports',
-          ctaLabel: 'Book a repair',
+          title: tr('Repairs · same day'),
+          subtitle: tr('Screens, batteries, charging ports'),
+          ctaLabel: tr('Book a repair'),
           link: '/repairs/new',
           startsAt: DateTime(2026),
         ),
-        kicker: 'REPAIRS',
+        kicker: tr('REPAIRS'),
         icon: PhosphorIconsFill.wrench,
         fan: HeroFan.none,
         photo: photo,
@@ -607,7 +613,7 @@ class _HeroCarouselState extends State<_HeroCarousel> with SingleTickerProviderS
                 left: box.maxWidth * (1 - _fraction) / 2 + _gap + Space.gutter,
                 bottom: 0,
                 child: Semantics(
-                  label: 'Slide ${_index + 1} of $_count',
+                  label: tr('Slide {i} of {n}', {'i': _index + 1, 'n': _count}),
                   onIncrease: () => _step(1),
                   onDecrease: () => _step(-1),
                   excludeSemantics: true,
@@ -683,19 +689,19 @@ class _ProductSlide extends ConsumerWidget {
     final save = slideFacts(card).savePaise;
     return HeroCard(
       tone: heroTone(seedHash(card.id)),
-      kicker: kicker,
+      kicker: tr(kicker),
       endsAt: endsAt,
       title: card.name,
-      cta: 'Buy now',
+      cta: tr('Buy now'),
       onCta: () => _buyNow(context, ref, card),
       onTap: () => context.push('/product/${card.slug}'),
       price: (
         price: formatInr(card.minPricePaise),
         mrp: card.mrpPaise > card.minPricePaise ? formatInr(card.mrpPaise) : null,
-        save: save > 0 ? 'Save ${formatInr(save)}' : null,
+        save: save > 0 ? tr('Save {amt}', {'amt': formatInr(save)}) : null,
       ),
       visual: HeroVisual(items: [(path: card.coverPath, opacity: 1.0)], photo: photo, icon: PhosphorIconsFill.deviceMobile),
-      semanticsLabel: heroLabel(kicker.toUpperCase() == 'FEATURED' ? 'Product' : kicker[0] + kicker.substring(1).toLowerCase(), card.name, 'Buy now',
+      semanticsLabel: heroLabel(tr(kicker.toUpperCase() == 'FEATURED' ? 'Product' : kicker[0] + kicker.substring(1).toLowerCase()), card.name, tr('Buy now'),
           endsAt: endsAt, detail: formatInr(card.minPricePaise)),
     );
   }
@@ -751,10 +757,10 @@ class _CategoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tiles = [
-      _CategoryTile(label: 'All', icon: PhosphorIconsRegular.squaresFour, onTap: () => context.go('/search')),
+      _CategoryTile(label: tr('All'), icon: PhosphorIconsRegular.squaresFour, onTap: () => context.go('/search')),
       for (final cat in categories)
         _CategoryTile(
-          label: _categoryLooks[cat.slug]?.$1 ?? cat.name,
+          label: switch (_categoryLooks[cat.slug]?.$1) { final l? => tr(l), _ => cat.name },
           icon: _categoryLooks[cat.slug]?.$2 ?? PhosphorIconsRegular.tag,
           tint: categoryTint(cat.slug),
           onTap: () => context.go('/search?category=${cat.slug}'),
@@ -828,11 +834,11 @@ class _TrustStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = settings;
     final free = s.freeDeliveryMinPaise == 0 || s.deliveryFeePaise == 0
-        ? 'Free delivery'
-        : 'Free delivery over ${formatInr(s.freeDeliveryMinPaise)}';
+        ? tr('Free delivery')
+        : tr('Free delivery over {amt}', {'amt': formatInr(s.freeDeliveryMinPaise)});
     final items = [
-      (PhosphorIconsRegular.sealCheck, 'Genuine products'),
-      if (s.codEnabled) (PhosphorIconsRegular.money, 'Cash on delivery'),
+      (PhosphorIconsRegular.sealCheck, tr('Genuine products')),
+      if (s.codEnabled) (PhosphorIconsRegular.money, tr('Cash on delivery')),
       (PhosphorIconsRegular.truck, free),
     ];
     final t = Theme.of(context).textTheme;
@@ -840,7 +846,7 @@ class _TrustStrip extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(Space.gutter - Space.sm, Space.md, Space.gutter - Space.sm, 0),
       child: Semantics(
         button: true,
-        label: '${items.map((i) => i.$2).join(', ')}. Why buy from us',
+        label: '${items.map((i) => i.$2).join(', ')}. ${tr('Why buy from us')}',
         excludeSemantics: true,
         child: InkWell(
           onTap: () => showWhyBuySheet(context, s),
@@ -893,21 +899,21 @@ Future<void> showWhyBuySheet(BuildContext context, StoreSettings s) => showModal
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Why buy from us', style: t.displaySmall?.copyWith(fontSize: 22)),
+                Text(tr('Why buy from us'), style: t.displaySmall?.copyWith(fontSize: 22)),
                 const SizedBox(height: Space.sm),
-                row(PhosphorIconsRegular.sealCheck, 'Genuine, sealed-box products'),
-                row(PhosphorIconsRegular.deviceMobile, 'IMEI shown on your order: check it with *#06#'),
-                if (s.codEnabled) row(PhosphorIconsRegular.money, 'Cash on delivery up to ${formatInr(s.codMaxPaise)}'),
-                row(PhosphorIconsRegular.receipt, 'No platform, COD or packing fees'),
-                row(PhosphorIconsRegular.certificate, 'GST-registered shop'),
+                row(PhosphorIconsRegular.sealCheck, tr('Genuine, sealed-box products')),
+                row(PhosphorIconsRegular.deviceMobile, tr('IMEI shown on your order: check it with *#06#')),
+                if (s.codEnabled) row(PhosphorIconsRegular.money, tr('Cash on delivery up to {amt}', {'amt': formatInr(s.codMaxPaise)})),
+                row(PhosphorIconsRegular.receipt, tr('No platform, COD or packing fees')),
+                row(PhosphorIconsRegular.certificate, tr('GST-registered shop')),
                 if (s.storeAddress.isNotEmpty)
                   row(
                     PhosphorIconsRegular.storefront,
-                    'A real shop: ${s.storeAddress}',
+                    tr('A real shop: {addr}', {'addr': s.storeAddress}),
                     trailing: s.mapsDestination.isEmpty
                         ? null
                         : IconButton(
-                            tooltip: 'Directions to the shop',
+                            tooltip: tr('Directions to the shop'),
                             icon: const Icon(PhosphorIconsRegular.navigationArrow),
                             onPressed: () => openUri(context, directionsUri(s.mapsDestination)),
                           ),
@@ -937,7 +943,7 @@ class _BrandRow extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader('Shop by brand', gutter: Space.gutter),
+        SectionHeader(tr('Shop by brand'), gutter: Space.gutter),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
@@ -965,7 +971,7 @@ class _StoreCard extends StatelessWidget {
     final c = Theme.of(context).colorScheme;
     final details = [
       settings.storeAddress,
-      if (settings.storeHours.isNotEmpty) 'Open ${settings.storeHours}',
+      if (settings.storeHours.isNotEmpty) tr('Open {hours}', {'hours': settings.storeHours}),
     ].where((s) => s.isNotEmpty).join(' · ');
     final listing = settings.mapsListingUri;
     return Padding(
@@ -986,19 +992,19 @@ class _StoreCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Visit the shop', style: t.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                        Text(tr('Visit the shop'), style: t.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
                         Text(details, style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
                       ],
                     ),
                   ),
                   if (settings.mapsDestination.isNotEmpty)
                     IconButton(
-                      tooltip: 'Directions to the shop',
+                      tooltip: tr('Directions to the shop'),
                       icon: const Icon(PhosphorIconsRegular.navigationArrow),
                       onPressed: () => openUri(context, directionsUri(settings.mapsDestination)),
                     ),
                   IconButton(
-                    tooltip: 'WhatsApp the shop',
+                    tooltip: tr('WhatsApp the shop'),
                     icon: const WhatsAppIcon(),
                     onPressed: () => openUri(context, whatsAppUri(settings.storePhone)),
                   ),
@@ -1012,7 +1018,7 @@ class _StoreCard extends StatelessWidget {
                 minLeadingWidth: 24,
                 horizontalTitleGap: Space.md,
                 leading: Image.asset('assets/brand/google_g.png', width: 22, height: 22, excludeFromSemantics: true),
-                title: const Text('Photos, reviews & hours on Google Maps'),
+                title: Text(tr('Photos, reviews & hours on Google Maps')),
                 trailing: const Icon(PhosphorIconsRegular.arrowSquareOut, size: 18),
                 onTap: () => openUri(context, listing),
               ),

@@ -16,13 +16,14 @@ import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/widgets.dart';
 import '../data/auto_apply.dart';
 import '../data/offers.dart';
+import '../../../core/i18n.dart';
 
 /// "10% off", "₹500 off", "Free delivery". The offer as staff set it, not a computed saving.
 String valueHeadline(OfferKind kind, int value) => switch (kind) {
-      OfferKind.percent => '$value% off',
-      OfferKind.flat => '${formatInr(value)} off',
-      OfferKind.freeDelivery => 'Free delivery',
-      OfferKind.pack => '$value% off a phone pack',
+      OfferKind.percent => tr('{v}% off', {'v': value}),
+      OfferKind.flat => tr('{v} off', {'v': formatInr(value)}),
+      OfferKind.freeDelivery => tr('Free delivery'),
+      OfferKind.pack => tr('{v}% off a phone pack', {'v': value}),
     };
 
 String offerHeadline(Offer o) => valueHeadline(o.kind, o.value);
@@ -31,24 +32,24 @@ String offerHeadline(Offer o) => valueHeadline(o.kind, o.value);
 List<String> offerTerms(Offer o) => [
       if (o.minSubtotalPaise > 0)
         o.wholeOrder
-            ? 'On orders of ${formatInr(o.minSubtotalPaise)} or more'
-            : 'When the offer’s items come to ${formatInr(o.minSubtotalPaise)} or more',
-      if (o.kind == OfferKind.percent && o.maxDiscountPaise != null) 'Up to ${formatInr(o.maxDiscountPaise!)} off',
-      if (!o.wholeOrder) 'Selected products only',
-      if (o.firstOrderOnly) 'First order only',
-      if (o.onlineOnly) 'Pay online to use it',
-      if (o.automatic) 'Applied automatically at checkout',
+            ? tr('On orders of {v} or more', {'v': formatInr(o.minSubtotalPaise)})
+            : tr('When the offer’s items come to {v} or more', {'v': formatInr(o.minSubtotalPaise)}),
+      if (o.kind == OfferKind.percent && o.maxDiscountPaise != null) tr('Up to {v} off', {'v': formatInr(o.maxDiscountPaise!)}),
+      if (!o.wholeOrder) tr('Selected products only'),
+      if (o.firstOrderOnly) tr('First order only'),
+      if (o.onlineOnly) tr('Pay online to use it'),
+      if (o.automatic) tr('Applied automatically at checkout'),
     ];
 
 /// "Ends in 45 min", "Ends in 5 h", "Ends in 3 days", "Till 5 Nov 2026"; null when the offer has no end.
 String? timeLeft(DateTime? endsAt, {DateTime? now}) {
   if (endsAt == null) return null;
   final left = endsAt.difference(now ?? DateTime.now());
-  if (left <= Duration.zero) return 'Ended';
-  if (left.inHours < 1) return 'Ends in ${math.max(1, left.inMinutes)} min';
-  if (left.inDays < 1) return 'Ends in ${left.inHours} h';
-  if (left.inDays < 7) return 'Ends in ${left.inDays} day${left.inDays == 1 ? '' : 's'}';
-  return 'Till ${formatDate(endsAt)}';
+  if (left <= Duration.zero) return tr('Ended');
+  if (left.inHours < 1) return tr('Ends in {n} min', {'n': math.max(1, left.inMinutes)});
+  if (left.inDays < 1) return tr('Ends in {n} h', {'n': left.inHours});
+  if (left.inDays < 7) return tr(left.inDays == 1 ? 'Ends in {n} day' : 'Ends in {n} days', {'n': left.inDays});
+  return tr('Till {d}', {'d': formatDate(endsAt)});
 }
 
 /// The live countdown on an offer banner: "Ends in 2d 4h", "Ends in 3h 12m", "Ends in 9m". Null once it has ended.
@@ -56,9 +57,9 @@ String? countdown(DateTime endsAt, {DateTime? now}) {
   final left = endsAt.difference(now ?? DateTime.now());
   if (left <= Duration.zero) return null;
   final d = left.inDays, h = left.inHours % 24, m = left.inMinutes % 60;
-  if (d > 0) return 'Ends in ${d}d ${h}h';
-  if (h > 0) return 'Ends in ${h}h ${m}m';
-  return 'Ends in ${math.max(1, m)}m';
+  if (d > 0) return tr('Ends in {d}d {h}h', {'d': d, 'h': h});
+  if (h > 0) return tr('Ends in {h}h {m}m', {'h': h, 'm': m});
+  return tr('Ends in {m}m', {'m': math.max(1, m)});
 }
 
 /// [countdown] with a timer icon, redrawn as each minute ticks over; nothing once the offer has ended.
@@ -104,13 +105,15 @@ class _CountdownState extends State<Countdown> {
 
 Future<void> copyCode(BuildContext context, String code) async {
   await Clipboard.setData(ClipboardData(text: code));
-  if (context.mounted) showMessage(context, 'Code $code copied');
+  if (context.mounted) showMessage(context, tr('Code {code} copied', {'code': code}));
 }
 
 /// The snackbar after a code works, with the server's saving.
 String appliedMessage(Quote q) {
-  final name = q.discountLabel ?? 'Offer';
-  return q.discountPaise > 0 ? '$name applied. You save ${formatInr(q.discountPaise)}.' : '$name applied: free delivery.';
+  final name = q.discountLabel ?? tr('Offer');
+  return q.discountPaise > 0
+      ? tr('{name} applied. You save {v}.', {'name': name, 'v': formatInr(q.discountPaise)})
+      : tr('{name} applied: free delivery.', {'name': name});
 }
 
 /// An offer in the Offers list and the coupon sheet: what it gives, its terms, and the code to copy or apply.
@@ -170,7 +173,7 @@ class OfferCard extends StatelessWidget {
               if (offer.code case final code?)
                 CodeActions(code: code, onApply: onApply, applied: applied)
               else
-                const Tag('No code needed', tone: TagTone.ok, icon: PhosphorIconsBold.check),
+                Tag(tr('No code needed'), tone: TagTone.ok, icon: PhosphorIconsBold.check),
             ],
           ),
             ),
@@ -196,7 +199,7 @@ class CodeActions extends StatelessWidget {
     final box = Semantics(
       container: true, // its own node inside a tappable card
       button: true,
-      label: 'Copy code $code',
+      label: tr('Copy code {code}', {'code': code}),
       excludeSemantics: true,
       child: Material(
         color: c.surface,
@@ -224,7 +227,7 @@ class CodeActions extends StatelessWidget {
                   const SizedBox(width: Space.sm),
                   Icon(PhosphorIconsRegular.copy, size: IconSizes.sm, color: c.onSurfaceVariant),
                   const SizedBox(width: Space.xs),
-                  Text('Copy', style: t.labelMedium?.copyWith(color: c.onSurfaceVariant)),
+                  Text(tr('Copy'), style: t.labelMedium?.copyWith(color: c.onSurfaceVariant)),
                 ],
               ),
             ),
@@ -238,12 +241,12 @@ class CodeActions extends StatelessWidget {
         Expanded(child: box),
         const SizedBox(width: Space.sm),
         if (applied)
-          Semantics(label: '$code applied', excludeSemantics: true, child: const Tag('Applied', tone: TagTone.ok, icon: PhosphorIconsBold.check))
+          Semantics(label: tr('{code} applied', {'code': code}), excludeSemantics: true, child: Tag(tr('Applied'), tone: TagTone.ok, icon: PhosphorIconsBold.check))
         else
           FilledButton(
             style: FilledButton.styleFrom(minimumSize: const Size(96, 48)),
             onPressed: onApply,
-            child: Text('Apply', semanticsLabel: 'Apply $code'),
+            child: Text(tr('Apply'), semanticsLabel: tr('Apply {code}', {'code': code})),
           ),
       ],
     );
@@ -285,17 +288,19 @@ class CouponRow extends ConsumerWidget {
         ? (
             PhosphorIconsRegular.warningCircle,
             c.error,
-            '$code can’t be used',
+            tr('{code} can’t be used', {'code': code}),
             couponError(error, minPaise: int.tryParse(q?.couponErrorDetail ?? '')),
           )
         : promo != null
             ? (
                 PhosphorIconsFill.sealPercent,
                 c.secondary,
-                filled ? '$code applied · ${occasionOf(auto.title)} ${offerHeadline(auto)}' : '${q!.discountLabel} applied',
-                q!.discountPaise > 0 ? 'You save ${formatInr(q.discountPaise)}' : 'Free delivery on this order',
+                filled
+                    ? tr('{code} applied · {occ} {deal}', {'code': code, 'occ': occasionOf(auto.title), 'deal': offerHeadline(auto)})
+                    : tr('{name} applied', {'name': q!.discountLabel}),
+                q!.discountPaise > 0 ? tr('You save {v}', {'v': formatInr(q.discountPaise)}) : tr('Free delivery on this order'),
               )
-            : (PhosphorIconsRegular.ticket, null, 'Apply a coupon', 'Or pick one of today’s offers');
+            : (PhosphorIconsRegular.ticket, null, tr('Apply a coupon'), tr('Or pick one of today’s offers'));
     final row = Card(
       child: ListTile(
         enabled: enabled,
@@ -305,7 +310,7 @@ class CouponRow extends ConsumerWidget {
             // the saving counts up when the code lands, and rolls when the cart changes it
             ? CountTo(
                 q.discountPaise,
-                format: (p) => 'You save ${formatInr(p)}',
+                format: (p) => tr('You save {v}', {'v': formatInr(p)}),
                 fromZero: true,
                 style: TextStyle(color: color),
               )
@@ -314,7 +319,7 @@ class CouponRow extends ConsumerWidget {
             ? const Icon(PhosphorIconsRegular.caretRight, size: IconSizes.sm)
             : TextButton(
                 onPressed: enabled ? () => ref.read(couponCodeProvider.notifier).set(null) : null,
-                child: Text('Remove', semanticsLabel: 'Remove code $code'),
+                child: Text(tr('Remove'), semanticsLabel: tr('Remove code {code}', {'code': code})),
               ),
         onTap: () => _open(context),
       ),
@@ -325,7 +330,7 @@ class CouponRow extends ConsumerWidget {
       TextButton.icon(
         onPressed: enabled ? () => _open(context) : null,
         icon: const Icon(PhosphorIconsRegular.tag, size: IconSizes.sm),
-        label: const Text('More offers'),
+        label: Text(tr('More offers')),
       ),
     ]);
   }
@@ -401,7 +406,7 @@ class _CouponSheetState extends ConsumerState<CouponSheet> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.md),
-              child: Semantics(header: true, child: Text('Apply coupon', style: t.titleLarge)),
+              child: Semantics(header: true, child: Text(tr('Apply coupon'), style: t.titleLarge)),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Space.lg),
@@ -411,7 +416,7 @@ class _CouponSheetState extends ConsumerState<CouponSheet> {
                   Expanded(
                     child: TextField(
                       controller: _code,
-                      decoration: InputDecoration(labelText: 'Coupon code', errorText: _error, errorMaxLines: 3),
+                      decoration: InputDecoration(labelText: tr('Coupon code'), errorText: _error, errorMaxLines: 3),
                       textCapitalization: TextCapitalization.characters,
                       autocorrect: false,
                       enableSuggestions: false,
@@ -430,7 +435,7 @@ class _CouponSheetState extends ConsumerState<CouponSheet> {
                       onPressed: _busy ? null : () => _apply(_code.text),
                       child: _busy
                           ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Text('Apply'),
+                          : Text(tr('Apply')),
                     ),
                   ),
                 ],
@@ -444,7 +449,7 @@ class _CouponSheetState extends ConsumerState<CouponSheet> {
                   if (offers.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: Space.sm),
-                      child: Text('Offers for you', style: t.titleSmall),
+                      child: Text(tr('Offers for you'), style: t.titleSmall),
                     ),
                   for (final o in offers)
                     Padding(
@@ -466,7 +471,7 @@ class _CouponSheetState extends ConsumerState<CouponSheet> {
                       Navigator.pop(context);
                       router.push('/offers');
                     },
-                    child: const Text('See all offers'),
+                    child: Text(tr('See all offers')),
                   ),
                 ],
               ),

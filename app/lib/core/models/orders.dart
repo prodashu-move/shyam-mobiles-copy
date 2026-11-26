@@ -1,4 +1,5 @@
 import 'shopping.dart';
+import '../i18n.dart';
 
 enum OrderStatus {
   pendingPayment('pending_payment', 'Awaiting payment'),
@@ -9,9 +10,10 @@ enum OrderStatus {
   cancelled('cancelled', 'Cancelled'),
   refunded('refunded', 'Refunded');
 
-  const OrderStatus(this.value, this.label);
+  const OrderStatus(this.value, this._en);
   final String value;
-  final String label;
+  final String _en;
+  String get label => tr(_en);
 
   static OrderStatus parse(String v) => values.firstWhere((s) => s.value == v);
 }
@@ -20,9 +22,10 @@ enum PaymentMethod {
   razorpay('razorpay', 'Pay online'),
   cod('cod', 'Cash on delivery');
 
-  const PaymentMethod(this.value, this.label);
+  const PaymentMethod(this.value, this._en);
   final String value;
-  final String label;
+  final String _en;
+  String get label => tr(_en);
 
   static PaymentMethod parse(String v) => values.firstWhere((s) => s.value == v);
 }
@@ -33,9 +36,10 @@ enum PaymentStatus {
   failed('failed', 'Failed'),
   refunded('refunded', 'Refunded');
 
-  const PaymentStatus(this.value, this.label);
+  const PaymentStatus(this.value, this._en);
   final String value;
-  final String label;
+  final String _en;
+  String get label => tr(_en);
 
   static PaymentStatus parse(String v) => values.firstWhere((s) => s.value == v);
 }
@@ -182,9 +186,10 @@ enum RepairStatus {
   completed('completed', 'Completed'),
   cancelled('cancelled', 'Cancelled');
 
-  const RepairStatus(this.value, this.label);
+  const RepairStatus(this.value, this._en);
   final String value;
-  final String label;
+  final String _en;
+  String get label => tr(_en);
 
   bool get isOpen => this != completed && this != cancelled;
 
@@ -196,10 +201,12 @@ enum RepairSlot {
   afternoon('afternoon', 'Afternoon', '1 pm – 5 pm'),
   evening('evening', 'Evening', '5 pm – 9 pm');
 
-  const RepairSlot(this.value, this.label, this.hours);
+  const RepairSlot(this.value, this._en, this._hours);
   final String value;
-  final String label;
-  final String hours;
+  final String _en;
+  String get label => tr(_en);
+  final String _hours;
+  String get hours => tr(_hours);
 
   static RepairSlot parse(String v) => values.firstWhere((s) => s.value == v);
 }
@@ -214,9 +221,10 @@ enum RepairIssue {
   software('software', 'Software'),
   other('other', 'Something else');
 
-  const RepairIssue(this.value, this.label);
+  const RepairIssue(this.value, this._en);
   final String value;
-  final String label;
+  final String _en;
+  String get label => tr(_en);
 
   static RepairIssue parse(String v) => values.firstWhere((s) => s.value == v);
 }

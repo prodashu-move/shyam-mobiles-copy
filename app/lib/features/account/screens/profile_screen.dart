@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../core/errors.dart';
+import '../../../core/i18n.dart';
 import '../../../core/input.dart';
 import '../../../core/models/models.dart';
 import '../../../core/supabase.dart';
@@ -16,7 +17,7 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-        appBar: AppBar(title: const Text('Profile')),
+        appBar: AppBar(title: Text(tr('Profile'))),
         body: AsyncBody(
           value: ref.watch(profileProvider),
           onRetry: () => ref.invalidate(profileProvider),
@@ -52,7 +53,7 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
     try {
       await saveFullName(ref, _name.text);
       if (!mounted) return;
-      showMessage(context, 'Saved.');
+      showMessage(context, tr('Saved.'));
       context.pop();
     } catch (e) {
       if (mounted) showMessage(context, friendlyError(e));
@@ -77,18 +78,18 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
             textCapitalization: TextCapitalization.words,
             autofillHints: const [AutofillHints.name],
             inputFormatters: textInput(MaxLen.name),
-            decoration: const InputDecoration(labelText: 'Full name'),
+            decoration: InputDecoration(labelText: tr('Full name')),
             textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) => _save(),
             // blank clears the name; otherwise the profiles check: a letter in any script, ≤80
             validator: (v) => checkText(v, max: MaxLen.name, mustHave: hasLetter),
           ),
           const SizedBox(height: Space.lg),
-          if (phone != null) _ReadOnly(label: 'Mobile number', value: phone),
-          if (email != null && email.isNotEmpty) _ReadOnly(label: 'Email', value: email),
+          if (phone != null) _ReadOnly(label: tr('Mobile number'), value: phone),
+          if (email != null && email.isNotEmpty) _ReadOnly(label: tr('Email'), value: email),
           const SizedBox(height: Space.sm),
           Text(
-            'You sign in with these, so they can’t be changed here.',
+            tr('You sign in with these, so they can’t be changed here.'),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: Space.xl),
@@ -96,7 +97,7 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
             onPressed: _saving || widget.profile == null ? null : _save,
             child: _saving
                 ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2.5))
-                : const Text('Save'),
+                : Text(tr('Save')),
           ),
         ],
       ),

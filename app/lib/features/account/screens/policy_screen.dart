@@ -8,6 +8,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import '../../../core/env.dart';
+import '../../../core/i18n.dart';
 import '../../../core/widgets/widgets.dart';
 import '../widgets/policies.dart';
 
@@ -76,7 +77,7 @@ class _PolicyScreenState extends State<PolicyScreen> {
   /// tel:, https (WhatsApp, PhonePe...) and, from our own pages only, mailto:.
   Future<void> _openOutside(Uri uri) async {
     final ok = await launchExternal(uri, email: true);
-    if (!ok && mounted) showMessage(context, 'Couldn’t open that link.');
+    if (!ok && mounted) showMessage(context, tr('Couldn’t open that link.'));
   }
 
   void _retry() {
@@ -89,12 +90,12 @@ class _PolicyScreenState extends State<PolicyScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(policyPages[widget.page] ?? 'Shyam Mobiles')),
+        appBar: AppBar(title: Text(tr(policyPages[widget.page] ?? 'Shyam Mobiles'))),
         body: switch ((_web, _error)) {
-          (null, _) => const EmptyState(
+          (null, _) => EmptyState(
               icon: PhosphorIconsRegular.fileText,
-              title: 'Coming soon',
-              message: 'Our policy pages go live before launch.',
+              title: tr('Coming soon'),
+              message: tr('Our policy pages go live before launch.'),
             ),
           (_, final error?) => ErrorView(error: error, onRetry: _retry),
           (final web?, null) => Stack(

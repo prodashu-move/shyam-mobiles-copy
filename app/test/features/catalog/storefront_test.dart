@@ -1,5 +1,7 @@
 // The storefront's anatomy: one tile layout everywhere, Home's order, and the product page's selling blocks.
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shyam_mobiles/core/i18n.dart';
+import 'package:shyam_mobiles/l10n/hindi.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shyam_mobiles/core/format.dart';
@@ -238,6 +240,21 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(router.routerDelegate.currentConfiguration.uri.toString(), '/cart');
+  });
+
+  testWidgets('the अ button turns the whole app Hindi, even widgets that never asked, and A turns it back', (tester) async {
+    addTearDown(() => debugSetLanguage(Language.en));
+    await pump(tester, '/', overrides: [catalogRepositoryProvider.overrideWithValue(FakeRailsApi())]);
+    await tester.pump(const Duration(seconds: 1));
+    const empty = 'The shelves are empty'; // the empty state, which doesn't watch the language
+    expect(find.text(empty), findsOneWidget);
+    await tester.tap(find.byTooltip('Change language'));
+    await tester.pump();
+    expect(find.text(hindi[empty]!), findsOneWidget);
+    expect(find.text(empty), findsNothing);
+    await tester.tap(find.byTooltip('भाषा बदलें'));
+    await tester.pump();
+    expect(find.text(empty), findsOneWidget);
   });
 
   testWidgets('Home with no deals, no new products and no phones has no empty tail', (tester) async {

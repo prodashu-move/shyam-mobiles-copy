@@ -7,6 +7,7 @@ import 'package:http/http.dart' show ClientException;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'format.dart';
+import 'i18n.dart';
 
 const _codes = {
   'CART_EMPTY': 'Your cart is empty.',
@@ -78,8 +79,8 @@ const _promotionRules = {
 /// Copy for a coupon refusal: `quote_order`'s `coupon_error`, or the code `place_order` raised. With
 /// [minPaise] (the raise's detail, or the listed offer's minimum) the minimum-order copy names the amount.
 String couponError(String code, {int? minPaise}) => code == 'COUPON_MIN_ORDER' && minPaise != null
-    ? 'This code needs a cart of ${formatInr(minPaise)} or more. Add a little more to use it.'
-    : _codes[code] ?? 'That code can’t be used on this order.';
+    ? tr('This code needs a cart of {amount} or more. Add a little more to use it.', {'amount': formatInr(minPaise)})
+    : tr(_codes[code] ?? 'That code can’t be used on this order.');
 
 const fallbackError = 'Something went wrong. Try again.';
 const _offline = 'You’re offline. Check your connection and try again.';
@@ -104,13 +105,15 @@ const _checkFields = {
 };
 
 String _checkError(String message) {
-  if (message.contains('in_phone')) return 'Check the mobile number and try again.'; // the phone domain's check
+  if (message.contains('in_phone')) return tr('Check the mobile number and try again.'); // the phone domain's check
   final constraint = RegExp(r'constraint "(\w+)"').firstMatch(message)?[1] ?? '';
-  if (constraint == 'variants_check') return 'The MRP can’t be below the price.';
+  if (constraint == 'variants_check') return tr('The MRP can’t be below the price.');
   final field = (_checkFields.keys.where((k) => constraint.endsWith('_${k}_check')).toList()
         ..sort((a, b) => b.length - a.length))
       .firstOrNull;
-  return field == null ? 'One of the fields isn’t valid. Check it and try again.' : 'Check the ${_checkFields[field]} and try again.';
+  return field == null
+      ? tr('One of the fields isn’t valid. Check it and try again.')
+      : tr('Check the {field} and try again.', {'field': tr(_checkFields[field]!)});
 }
 
 /// The session is gone (expired and not refreshable, revoked, or the account was deleted elsewhere): retrying
@@ -126,7 +129,10 @@ bool isSessionError(Object e) => switch (e) {
     };
 
 /// User-facing copy for any error thrown by Supabase, Edge Functions or the network. Never shows raw server text.
-String friendlyError(Object e) {
+/// The consts above stay English; [tr] turns the chosen line into the customer's language here, at display time.
+String friendlyError(Object e) => tr(_friendly(e));
+
+String _friendly(Object e) {
   if (isSessionError(e)) return _codes['UNAUTHORIZED']!;
   switch (e) {
     case PostgrestException(:final message, :final code, :final details):

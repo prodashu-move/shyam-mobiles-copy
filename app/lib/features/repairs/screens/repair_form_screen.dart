@@ -19,6 +19,7 @@ import '../data/booking_days.dart';
 import '../data/repairs.dart';
 import '../data/repairs_repository.dart';
 import '../widgets/repair_widgets.dart';
+import '../../../core/i18n.dart';
 
 // what sells in Waidhan, most common first; keypad phones are mostly Nokia and LAVA
 const _brands = ['Samsung', 'vivo', 'OPPO', 'realme', 'Xiaomi / Redmi', 'Apple', 'OnePlus', 'Motorola', 'Nokia / LAVA', 'Other'];
@@ -68,12 +69,12 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
   Future<void> _submit() async {
     if (_busy) return; // a double tap would book twice
     final missing = [
-      if (_brand == null) 'your phone’s brand',
-      if (_issue == null) 'what’s wrong',
-      if (_slot == null) 'a time slot',
+      if (_brand == null) tr('your phone’s brand'),
+      if (_issue == null) tr('what’s wrong'),
+      if (_slot == null) tr('a time slot'),
     ];
     final fieldsOk = _form.currentState!.validate();
-    if (missing.isNotEmpty) return showMessage(context, 'Pick ${missing.join(', ')}.');
+    if (missing.isNotEmpty) return showMessage(context, tr('Pick {list}.', {'list': missing.join(', ')}));
     if (!fieldsOk) return;
     setState(() => _busy = true);
     try {
@@ -89,7 +90,7 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
       ref.invalidate(myRepairsProvider);
       if (!mounted) return;
       unawaited(HapticFeedback.mediumImpact());
-      showMessage(context, 'Booked. We’ll call you to confirm.');
+      showMessage(context, tr('Booked. We’ll call you to confirm.'));
       context.pushReplacement('/repairs/$id');
     } catch (e) {
       if (mounted) showMessage(context, friendlyError(e));
@@ -108,11 +109,11 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          tooltip: 'Close',
+          tooltip: tr('Close'),
           icon: const Icon(PhosphorIconsRegular.x),
           onPressed: () => context.canPop() ? context.pop() : context.go('/repairs'),
         ),
-        title: const Text('Book a repair'),
+        title: Text(tr('Book a repair')),
       ),
       bottomNavigationBar: StickyBar(
         child: Column(
@@ -120,7 +121,7 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Free · No payment now',
+              tr('Free · No payment now'),
               textAlign: TextAlign.center,
               style: t.labelMedium?.copyWith(color: BrandColors.creamInk, fontWeight: FontWeight.w700),
             ),
@@ -129,7 +130,9 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
               onPressed: _busy ? null : _submit,
               child: _busy
                   ? const ButtonSpinner()
-                  : Text(_slot == null ? 'Book for $when' : 'Book for $when, ${_slot!.label.toLowerCase()}'),
+                  : Text(_slot == null
+                      ? tr('Book for {when}', {'when': when})
+                      : tr('Book for {when}, {slot}', {'when': when, 'slot': tr(_slot!.label).toLowerCase()})),
             ),
           ],
         ),
@@ -142,10 +145,10 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const _Pad(FieldLabel('Your phone')),
+              _Pad(FieldLabel(tr('Your phone'))),
               ChipBar(
                 gutter: Space.gutter,
-                options: {for (final b in _brands) b: b},
+                options: {for (final b in _brands) b: b == 'Other' ? tr('Other') : b},
                 selected: _brand,
                 onSelected: (b) => setState(() => _brand = b),
               ),
@@ -154,7 +157,7 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
                   padding: const EdgeInsets.only(top: Space.sm),
                   child: TextFormField(
                     controller: _otherBrand,
-                    decoration: const InputDecoration(labelText: 'Brand'),
+                    decoration: InputDecoration(labelText: tr('Brand')),
                     textCapitalization: TextCapitalization.words,
                     inputFormatters: textInput(MaxLen.deviceBrand),
                     textInputAction: TextInputAction.next,
@@ -166,7 +169,7 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
                 padding: const EdgeInsets.only(top: Space.sm),
                 child: TextFormField(
                   controller: _model,
-                  decoration: const InputDecoration(labelText: 'Model', hintText: 'e.g. Galaxy S23'),
+                  decoration: InputDecoration(labelText: tr('Model'), hintText: tr('e.g. Galaxy S23')),
                   textCapitalization: TextCapitalization.words,
                   inputFormatters: textInput(MaxLen.deviceModel),
                   textInputAction: TextInputAction.next,
@@ -174,14 +177,14 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
                       checkText(v, min: 1, max: MaxLen.deviceModel, what: 'the model', mustHave: hasLetterOrDigit),
                 ),
               )),
-              const _Pad(FieldLabel('What’s wrong?')),
+              _Pad(FieldLabel(tr('What’s wrong?'))),
               _Pad(IssueGrid(selected: _issue, onSelected: (i) => setState(() => _issue = i))),
               _Pad(Padding(
                 padding: const EdgeInsets.only(top: Space.md),
                 child: TextFormField(
                   controller: _description,
                   decoration: InputDecoration(
-                    labelText: 'Anything else? (optional)',
+                    labelText: tr('Anything else? (optional)'),
                     counter: LengthCounter(_description, MaxLen.note),
                   ),
                   minLines: 2,
@@ -190,7 +193,7 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
                   inputFormatters: textInput(MaxLen.note, multiline: true),
                 ),
               )),
-              const _Pad(FieldLabel('When can you come in?')),
+              _Pad(FieldLabel(tr('When can you come in?'))),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
@@ -233,9 +236,9 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
                 padding: const EdgeInsets.only(top: Space.xl),
                 child: TextFormField(
                   controller: _phone,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone for updates',
-                    prefixIcon: Icon(PhosphorIconsRegular.phone),
+                  decoration: InputDecoration(
+                    labelText: tr('Phone for updates'),
+                    prefixIcon: const Icon(PhosphorIconsRegular.phone),
                     prefixText: '+91 ',
                     hintText: '98765 43210',
                   ),
@@ -251,7 +254,7 @@ class _RepairFormScreenState extends ConsumerState<RepairFormScreen> {
               _Pad(Padding(
                 padding: const EdgeInsets.only(top: Space.md),
                 child: Text(
-                  'Booking is free. You can cancel until the repair starts.',
+                  tr('Booking is free. You can cancel until the repair starts.'),
                   style: t.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               )),
@@ -298,7 +301,9 @@ class _DayChip extends StatelessWidget {
     return Semantics(
       selected: selected,
       button: true,
-      label: '${today ? 'Today, ' : ''}${DateFormat('EEEE d MMMM').format(day)}',
+      label: today
+          ? tr('Today, {d}', {'d': DateFormat('EEEE d MMMM').format(day)})
+          : DateFormat('EEEE d MMMM').format(day),
       excludeSemantics: true,
       child: Material(
         color: selected ? c.primary : Colors.transparent,
@@ -317,7 +322,7 @@ class _DayChip extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    today ? 'Today' : DateFormat('EEE').format(day),
+                    today ? tr('Today') : DateFormat('EEE').format(day),
                     style: t.labelSmall?.copyWith(color: selected ? fg : c.onSurfaceVariant),
                   ),
                   Text('${day.day}', style: t.titleLarge?.copyWith(color: fg, fontWeight: FontWeight.w800)),
@@ -347,7 +352,7 @@ class _SlotChip extends StatelessWidget {
       selected: selected,
       button: true,
       enabled: onTap != null,
-      label: '${slot.label}, ${slot.hours}${onTap == null ? ', not available today' : ''}',
+      label: '${tr(slot.label)}, ${tr(slot.hours)}${onTap == null ? ', ${tr('not available today')}' : ''}',
       excludeSemantics: true,
       child: Opacity(
         opacity: onTap == null ? 0.4 : 1,
@@ -367,9 +372,9 @@ class _SlotChip extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(slot.label, style: t.labelMedium?.copyWith(color: fg, fontWeight: FontWeight.w700)),
+                    Text(tr(slot.label), style: t.labelMedium?.copyWith(color: fg, fontWeight: FontWeight.w700)),
                     Text(
-                      slot.hours,
+                      tr(slot.hours),
                       textAlign: TextAlign.center,
                       style: t.labelSmall?.copyWith(
                         color: selected ? fg : c.onSurfaceVariant,

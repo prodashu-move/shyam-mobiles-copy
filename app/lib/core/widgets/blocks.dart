@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../format.dart';
+import '../i18n.dart';
 import '../models/models.dart';
 import '../supabase.dart';
 import '../theme/tokens.dart';
@@ -109,10 +110,10 @@ void showReturnsSheet(BuildContext context, StoreSettings settings) => showModal
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Returns & warranty', style: Theme.of(context).textTheme.titleLarge),
+              Text(tr('Returns & warranty'), style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: Space.md),
               Text(
-                settings.returnsPolicy.isEmpty ? defaultReturnsPolicy : settings.returnsPolicy,
+                settings.returnsPolicy.isEmpty ? tr(defaultReturnsPolicy) : settings.returnsPolicy,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
@@ -133,13 +134,15 @@ Uri whatsAppUri(String phone, {String? text}) => Uri.parse(
 /// Opens [uri] in another app; says which app couldn't open when nothing could.
 Future<void> openUri(BuildContext context, Uri uri) async {
   if (await launchExternal(uri) || !context.mounted) return;
-  final what = switch (uri) {
-    Uri(scheme: 'tel') => 'the phone app',
-    Uri(host: 'wa.me') => 'WhatsApp',
-    Uri(host: final h) when h.contains('google') => 'Google Maps',
-    _ => 'that on this phone',
-  };
-  showMessage(context, 'Couldn’t open $what.');
+  showMessage(
+    context,
+    switch (uri) {
+      Uri(scheme: 'tel') => tr('Couldn’t open the phone app.'),
+      Uri(host: 'wa.me') => 'Couldn’t open WhatsApp.',
+      Uri(host: final h) when h.contains('google') => 'Couldn’t open Google Maps.',
+      _ => tr('Couldn’t open that on this phone.'),
+    },
+  );
 }
 
 /// "WhatsApp" next to "Call shop", from store_settings.store_phone, wherever there's a person to ask.
@@ -165,7 +168,7 @@ class StoreContactButtons extends ConsumerWidget {
           child: OutlinedButton.icon(
             onPressed: phone == null ? null : () => openUri(context, telUri(phone)),
             icon: const Icon(PhosphorIconsRegular.phone),
-            label: const Text('Call shop'),
+            label: Text(tr('Call shop')),
           ),
         ),
       ],
@@ -188,16 +191,16 @@ class FollowButtons extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.xs, Space.xs),
       child: Row(
         children: [
-          Expanded(child: Text('Follow the shop', style: Theme.of(context).textTheme.titleSmall)),
+          Expanded(child: Text(tr('Follow the shop'), style: Theme.of(context).textTheme.titleSmall)),
           if (ig != null)
             IconButton(
-              tooltip: 'Shyam Mobiles on Instagram',
+              tooltip: tr('Shyam Mobiles on Instagram'),
               icon: const InstagramIcon(),
               onPressed: () => openUri(context, SocialSite.instagram.url(ig)),
             ),
           if (fb != null)
             IconButton(
-              tooltip: 'Shyam Mobiles on Facebook',
+              tooltip: tr('Shyam Mobiles on Facebook'),
               icon: const FacebookIcon(),
               onPressed: () => openUri(context, SocialSite.facebook.url(fb)),
             ),

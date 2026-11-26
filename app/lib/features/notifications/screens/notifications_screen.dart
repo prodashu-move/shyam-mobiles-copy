@@ -14,6 +14,7 @@ import '../../../core/widgets/widgets.dart';
 import '../../account/widgets/offers_switch.dart';
 import '../data/notifications.dart';
 import '../widgets/notification_art.dart';
+import '../../../core/i18n.dart';
 
 /// Everything that happened to your orders, repairs and coupons (and, for staff, what needs doing), newest first under
 /// Today / Yesterday / Earlier. Tap one to open it; the × or a swipe removes it.
@@ -59,8 +60,8 @@ class NotificationsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
-        actions: [if (unread) TextButton(onPressed: markAll, child: const Text('Mark all read'))],
+        title: Text(tr('Notifications')),
+        actions: [if (unread) TextButton(onPressed: markAll, child: Text(tr('Mark all read')))],
       ),
       body: Column(children: [
         const OffersSwitch(),
@@ -77,12 +78,12 @@ class NotificationsScreen extends ConsumerWidget {
         ),
         data: (p) {
           if (p.items.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: PhosphorIconsRegular.bell,
               tone: Worlds.offers,
-              art: NotificationArt(kind: '', size: 112),
-              title: 'No notifications yet',
-              message: 'Updates on your orders, repairs and offers show up here.',
+              art: const NotificationArt(kind: '', size: 112),
+              title: tr('No notifications yet'),
+              message: tr('Updates on your orders, repairs and offers show up here.'),
             );
           }
           final now = DateTime.now();
@@ -103,7 +104,7 @@ class NotificationsScreen extends ConsumerWidget {
                 padding: EdgeInsets.only(bottom: Space.lg + MediaQuery.paddingOf(context).bottom),
                 itemCount: rows.length + (p.hasMore ? 1 : 0),
                 itemBuilder: (_, i) => switch (i < rows.length ? rows[i] : null) {
-                  final DayGroup g => SectionHeader(g.label),
+                  final DayGroup g => SectionHeader(tr(g.label)),
                   final AppNotification n => _Tile(
                       n,
                       key: ValueKey(n.id),
@@ -114,7 +115,7 @@ class NotificationsScreen extends ConsumerWidget {
                   _ => PagedFooter(
                       failed: p.moreFailed,
                       onRetry: () => list.loadMore(retry: true),
-                      what: 'more notifications',
+                      what: tr('more notifications'),
                     ),
                 },
               ),
@@ -185,7 +186,7 @@ class _Tile extends StatelessWidget {
                         ),
                         if (n.unread)
                           Semantics(
-                            label: 'Unread',
+                            label: tr('Unread'),
                             child: const Padding(
                               padding: EdgeInsets.only(left: Space.sm, top: 6),
                               child: DecoratedBox(
@@ -207,7 +208,7 @@ class _Tile extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Delete notification',
+                tooltip: tr('Delete notification'),
                 onPressed: onDelete,
                 icon: Icon(PhosphorIconsRegular.x, size: 18, color: c.onSurfaceVariant),
               ),

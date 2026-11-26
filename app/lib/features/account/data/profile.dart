@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/format.dart';
+import '../../../core/i18n.dart';
 import '../../../core/input.dart';
 import '../../../core/models/models.dart';
 import '../../../core/supabase.dart';
@@ -26,10 +27,10 @@ final _nameChars = RegExp(r"^[\p{L}\p{M} .'-]+$", unicode: true);
 /// hyphens are fine too ("R.K. Sharma", "D'Souza").
 String? validatePersonName(String? v) {
   final s = tidy(v);
-  if (s.isEmpty) return 'Enter your name.';
-  if (!_nameChars.hasMatch(s)) return 'Use letters only, like Ravi Kumar.';
-  if (hasLetter.allMatches(s).length < 2) return 'Enter at least 2 letters.';
-  if (s.runes.length > 60) return 'Keep it to 60 characters.';
+  if (s.isEmpty) return tr('Enter your name.');
+  if (!_nameChars.hasMatch(s)) return tr('Use letters only, like Ravi Kumar.');
+  if (hasLetter.allMatches(s).length < 2) return tr('Enter at least 2 letters.');
+  if (s.runes.length > 60) return tr('Keep it to 60 characters.');
   return null;
 }
 

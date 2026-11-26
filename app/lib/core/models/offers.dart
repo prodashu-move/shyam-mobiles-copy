@@ -1,6 +1,8 @@
 // Offers (docs/SPEC.md "Offers"): promotions are coupons (with a code) or automatic sales (without one). Every
 // amount here comes from the server; the app never works out a discount itself.
 
+import '../i18n.dart';
+
 enum OfferKind {
   percent('percent', 'Percent off'),
   flat('flat', 'Flat amount off'),
@@ -93,7 +95,7 @@ class Quote {
   /// What the summary calls the discount: the code, or the sale's title.
   String? get discountLabel => switch (promotion) {
         null => null,
-        (kind: OfferKind.pack, :final title, code: _, id: _) => 'Pack saving · $title', // the phone pack
+        (kind: OfferKind.pack, :final title, code: _, id: _) => tr('Pack saving · {title}', {'title': title}), // the phone pack
         final p => p.code ?? p.title,
       };
 

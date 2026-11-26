@@ -13,6 +13,7 @@ import '../../../core/widgets/widgets.dart';
 import '../../account/widgets/store_card.dart';
 import '../data/repairs.dart';
 import '../widgets/repair_widgets.dart';
+import '../../../core/i18n.dart';
 
 // Promises the owner hasn't confirmed yet ("Your old part is given back to you", "Repair warranty: N days", same day,
 // GST bill) stay out of this page until they do.
@@ -30,7 +31,7 @@ class RepairsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final signedIn = ref.watch(currentUserIdProvider) != null;
     return Scaffold(
-      appBar: AppBar(title: const Text('Repairs')),
+      appBar: AppBar(title: Text(tr('Repairs'))),
       body: !signedIn
           ? const _Page(bookings: [])
           : AsyncBody<Paged<RepairBooking>>(
@@ -48,7 +49,7 @@ class RepairsScreen extends ConsumerWidget {
                         ? PagedFooter(
                             failed: page.moreFailed,
                             onRetry: () => ref.read(myRepairsProvider.notifier).loadMore(retry: true),
-                            what: 'more repairs',
+                            what: tr('more repairs'),
                           )
                         : null,
                   ),
@@ -73,7 +74,7 @@ class _Page extends StatelessWidget {
           if (bookings.isEmpty)
             const _Hero()
           else ...[
-            const SectionHeader('Your bookings', gutter: Space.gutter),
+            SectionHeader(tr('Your bookings'), gutter: Space.gutter),
             for (final b in bookings)
               Padding(
                 padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.md),
@@ -82,16 +83,16 @@ class _Page extends StatelessWidget {
             ?footer,
             const _BookAnother(),
           ],
-          const SectionHeader('What we fix', gutter: Space.gutter),
+          SectionHeader(tr('What we fix'), gutter: Space.gutter),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
             child: IssueGrid(selected: null, onSelected: (issue) => _book(context, issue)),
           ),
-          const SectionHeader('How it works', gutter: Space.gutter),
+          SectionHeader(tr('How it works'), gutter: Space.gutter),
           const _Steps(),
-          const SectionHeader('Our promise', gutter: Space.gutter),
+          SectionHeader(tr('Our promise'), gutter: Space.gutter),
           const _Promise(),
-          const SectionHeader('Visit the shop', gutter: Space.gutter),
+          SectionHeader(tr('Visit the shop'), gutter: Space.gutter),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: Space.gutter),
             child: StoreCard(whatsAppText: 'Hi, I have a question about a repair'),
@@ -123,18 +124,18 @@ class _Hero extends ConsumerWidget {
               const SizedBox(height: Space.sm),
               Semantics(
                 header: true,
-                child: Text('Phone repair at Shyam Mobiles', style: t.displaySmall?.copyWith(fontSize: 22, color: BrandColors.creamInk)),
+                child: Text(tr('Phone repair at Shyam Mobiles'), style: t.displaySmall?.copyWith(fontSize: 22, color: BrandColors.creamInk)),
               ),
               const SizedBox(height: Space.xs),
               Text(
-                'We check your phone, tell you the price, and start only after you say yes.',
+                tr('We check your phone, tell you the price, and start only after you say yes.'),
                 style: t.bodyMedium?.copyWith(color: BrandColors.creamInk),
               ),
               const SizedBox(height: Space.lg),
               FilledButton.icon(
                 onPressed: () => _book(context),
                 icon: const Icon(PhosphorIconsRegular.wrench),
-                label: const Text('Book a repair · Free'),
+                label: Text(tr('Book a repair · Free')),
               ),
               if (phone != null) ...[
                 const SizedBox(height: Space.sm),
@@ -142,7 +143,7 @@ class _Hero extends ConsumerWidget {
                   style: OutlinedButton.styleFrom(backgroundColor: c.surface),
                   onPressed: () => openUri(context, whatsAppUri(phone, text: 'Hi, my phone has a problem. Photo attached.')),
                   icon: const WhatsAppIcon(),
-                  label: const Text('Send a photo on WhatsApp'),
+                  label: Text(tr('Send a photo on WhatsApp')),
                 ),
               ],
             ],
@@ -164,7 +165,7 @@ class _BookAnother extends StatelessWidget {
       child: FilledButton.icon(
         onPressed: () => _book(context),
         icon: const Icon(PhosphorIconsRegular.wrench),
-        label: const Text('Book a repair · Free'),
+        label: Text(tr('Book a repair · Free')),
       ),
     );
   }
@@ -207,8 +208,8 @@ class _Steps extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(title, style: t.titleSmall),
-                          Text(line, style: t.bodyMedium?.copyWith(color: c.onSurfaceVariant)),
+                          Text(tr(title), style: t.titleSmall),
+                          Text(tr(line), style: t.bodyMedium?.copyWith(color: c.onSurfaceVariant)),
                         ],
                       ),
                     ),
@@ -245,7 +246,7 @@ class _Promise extends StatelessWidget {
                 children: [
                   IconWell(icon, tint: Worlds.repairs),
                   const SizedBox(width: Space.md),
-                  Expanded(child: Text(text, style: t.bodyMedium)),
+                  Expanded(child: Text(tr(text), style: t.bodyMedium)),
                 ],
               ),
             ),

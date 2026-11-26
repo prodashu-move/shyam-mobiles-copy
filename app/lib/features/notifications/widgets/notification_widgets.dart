@@ -12,6 +12,7 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/widgets.dart';
 import '../data/notifications.dart';
 import 'notification_art.dart';
+import '../../../core/i18n.dart';
 
 /// The bell for Home and the admin dashboard: unread count in a gold badge that pops when it rises; opens
 /// /notifications. Nothing when signed out.
@@ -33,7 +34,7 @@ class _NotificationBellState extends ConsumerState<NotificationBell> {
     });
     final n = ref.watch(unreadCountProvider);
     return IconButton(
-      tooltip: n == 0 ? 'Notifications' : 'Notifications, $n unread',
+      tooltip: n == 0 ? tr('Notifications') : tr('Notifications, {n} unread', {'n': n}),
       onPressed: () => context.push('/notifications'),
       icon: Bump(
         trigger: _rises,
@@ -184,11 +185,11 @@ class _Banner extends StatelessWidget {
                         ],
                       ),
                     ),
-                    TextButton(onPressed: onOpen, child: const Text('View')),
+                    TextButton(onPressed: onOpen, child: Text(tr('View'))),
                     // a label, not a tooltip: the banner sits above the Navigator, outside any Overlay
                     Semantics(
                       button: true,
-                      label: 'Dismiss',
+                      label: tr('Dismiss'),
                       excludeSemantics: true,
                       child: IconButton(onPressed: onClose, icon: const Icon(PhosphorIconsRegular.x, size: 18)),
                     ),

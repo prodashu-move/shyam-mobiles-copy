@@ -16,6 +16,7 @@ import '../../../core/widgets/blocks.dart';
 import '../../../core/widgets/widgets.dart';
 import '../data/offers.dart';
 import '../widgets/offer_widgets.dart';
+import '../../../core/i18n.dart';
 
 /// The WhatsApp message a customer forwards: the code, what the friend gets, and the link that carries the code into
 /// the app (the same text as the Share button). No contact is picked here.
@@ -32,7 +33,7 @@ class ReferScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final referral = ref.watch(myReferralProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Refer & earn'), actions: [
+      appBar: AppBar(title: Text(tr('Refer & earn')), actions: [
         if (referral.value?.enabled ?? false) const ShareButton(what: 'I shop for phones at Shyam Mobiles.'),
       ]),
       body: AsyncBody<Referral>(
@@ -47,9 +48,9 @@ class ReferScreen extends ConsumerWidget {
             : EmptyState(
                 icon: PhosphorIconsRegular.gift,
                 tone: Worlds.offers,
-                title: 'Refer & earn isn’t running right now',
-                message: 'Check Offers for today’s coupons and sales.',
-                action: FilledButton(onPressed: () => context.pushReplacement('/offers'), child: const Text('See offers')),
+                title: tr('Refer & earn isn’t running right now'),
+                message: tr('Check Offers for today’s coupons and sales.'),
+                action: FilledButton(onPressed: () => context.pushReplacement('/offers'), child: Text(tr('See offers'))),
               ),
       ),
     );
@@ -59,8 +60,9 @@ class ReferScreen extends ConsumerWidget {
 /// The monthly reward cap, said plainly: past it, a friend still gets their discount but no reward is made.
 String _capNote(int cap) => cap <= 0
     ? ''
-    : ' You can earn up to $cap reward${cap == 1 ? '' : 's'} a month. Friends who join after that still get their '
-        'discount, but no reward is added for you.';
+    : cap == 1
+        ? tr(' You can earn up to 1 reward a month. Friends who join after that still get their discount, but no reward is added for you.')
+        : tr(' You can earn up to {cap} rewards a month. Friends who join after that still get their discount, but no reward is added for you.', {'cap': cap});
 
 class _Body extends StatelessWidget {
   const _Body({required this.referral, this.monthlyCap});
@@ -92,13 +94,13 @@ class _Body extends StatelessWidget {
                   Semantics(
                     header: true,
                     child: Text(
-                      'Give ${formatInr(r.friendPaise)}, get ${formatInr(r.rewardPaise)}',
+                      tr('Give {a}, get {b}', {'a': formatInr(r.friendPaise), 'b': formatInr(r.rewardPaise)}),
                       style: t.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
                     ),
                   ),
                   const SizedBox(height: Space.xs),
                   Text(
-                    'Your friend saves ${formatInr(r.friendPaise)}. You get ${formatInr(r.rewardPaise)} when their order arrives.',
+                    tr('Your friend saves {a}. You get {b} when their order arrives.', {'a': formatInr(r.friendPaise), 'b': formatInr(r.rewardPaise)}),
                     style: t.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
                   ),
                 ],
@@ -107,7 +109,7 @@ class _Body extends StatelessWidget {
           ),
         ).enter(context),
         const SizedBox(height: Space.lg),
-        Text('Your code', style: t.titleSmall),
+        Text(tr('Your code'), style: t.titleSmall),
         const SizedBox(height: Space.sm),
         CodeActions(code: r.code),
         const SizedBox(height: Space.md),
@@ -116,13 +118,13 @@ class _Body extends StatelessWidget {
           style: FilledButton.styleFrom(backgroundColor: BrandColors.whatsapp, foregroundColor: BrandColors.ink),
           onPressed: () => openUri(context, referralShareUri(r)),
           icon: const Icon(PhosphorIconsFill.whatsappLogo, size: IconSizes.md, color: BrandColors.ink),
-          label: const Text('Share on WhatsApp'),
+          label: Text(tr('Share on WhatsApp')),
         ),
-        const ListSection('How it works'),
+        ListSection(tr('How it works')),
         for (final (i, line) in [
-          'Share your code with a friend.',
-          'They get ${formatInr(r.friendPaise)} off their first order of ${formatInr(r.minOrderPaise)} or more.',
-          'When that order is delivered, you get a ${formatInr(r.rewardPaise)} coupon.',
+          tr('Share your code with a friend.'),
+          tr('They get {a} off their first order of {b} or more.', {'a': formatInr(r.friendPaise), 'b': formatInr(r.minOrderPaise)}),
+          tr('When that order is delivered, you get a {a} coupon.', {'a': formatInr(r.rewardPaise)}),
         ].indexed)
           Padding(
             padding: const EdgeInsets.only(bottom: Space.sm),
@@ -147,7 +149,7 @@ class _Body extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: Space.md),
             child: Row(
               children: [
-                for (final (n, label) in [(r.joined, 'Friends joined'), (r.rewarded, 'Rewards earned')])
+                for (final (n, label) in [(r.joined, tr('Friends joined')), (r.rewarded, tr('Rewards earned'))])
                   Expanded(
                     child: Semantics(
                       container: true,
@@ -167,8 +169,8 @@ class _Body extends StatelessWidget {
         ),
         const SizedBox(height: Space.sm),
         Text(
-          'Your coupon is for an order of ${formatInr(r.minOrderPaise)} or more and lasts 90 days. It shows up in '
-          'Offers & coupons.${_capNote(monthlyCap ?? 0)}',
+          tr('Your coupon is for an order of {min} or more and lasts 90 days. It shows up in Offers & coupons.{note}',
+              {'min': formatInr(r.minOrderPaise), 'note': _capNote(monthlyCap ?? 0)}),
           style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
         ),
         if (r.canEnterCode) const _FriendCode(),
@@ -206,7 +208,7 @@ class _FriendCodeState extends ConsumerState<_FriendCode> {
     });
     try {
       final welcome = await applyReferralCode(ref, _code.text.trim());
-      if (mounted) showMessage(context, 'Done. Use ${welcome.code} for ${offerHeadline(welcome)}. It’s in Offers & coupons.');
+      if (mounted) showMessage(context, tr('Done. Use {code} for {deal}. It’s in Offers & coupons.', {'code': welcome.code, 'deal': offerHeadline(welcome)}));
     } catch (e) {
       if (mounted) setState(() => _error = friendlyError(e));
     } finally {
@@ -221,7 +223,7 @@ class _FriendCodeState extends ConsumerState<_FriendCode> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: Space.xl),
-        Semantics(header: true, child: Text('Have a friend’s code?', style: t.titleMedium)),
+        Semantics(header: true, child: Text(tr('Have a friend’s code?'), style: t.titleMedium)),
         const SizedBox(height: Space.sm),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,7 +231,7 @@ class _FriendCodeState extends ConsumerState<_FriendCode> {
             Expanded(
               child: TextField(
                 controller: _code,
-                decoration: InputDecoration(labelText: 'Friend’s code', errorText: _error, errorMaxLines: 3),
+                decoration: InputDecoration(labelText: tr('Friend’s code'), errorText: _error, errorMaxLines: 3),
                 textCapitalization: TextCapitalization.characters,
                 autocorrect: false,
                 enableSuggestions: false,
@@ -243,7 +245,7 @@ class _FriendCodeState extends ConsumerState<_FriendCode> {
               padding: const EdgeInsets.only(top: Space.xs),
               child: FilledButton(
                 onPressed: _busy ? null : _apply,
-                child: _busy ? const ButtonSpinner() : const Text('Apply'),
+                child: _busy ? const ButtonSpinner() : Text(tr('Apply')),
               ),
             ),
           ],

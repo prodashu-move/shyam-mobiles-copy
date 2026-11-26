@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../i18n.dart';
 
 import '../theme/tokens.dart';
 
@@ -93,7 +94,7 @@ class _MascotLoaderState extends State<MascotLoader> with SingleTickerProviderSt
     return Semantics(
       container: true,
       liveRegion: true,
-      label: 'Loading. $_fact',
+      label: tr('Loading. {fact}', {'fact': tr(_fact)}),
       excludeSemantics: true,
       child: Center(
         child: Padding(
@@ -103,9 +104,9 @@ class _MascotLoaderState extends State<MascotLoader> with SingleTickerProviderSt
             children: [
               CustomPaint(size: const Size.square(112), painter: _MorPainter(still ? null : _c)),
               const SizedBox(height: Space.lg),
-              Text('Did you know?', style: t.labelLarge?.copyWith(color: BrandColors.peacockInk)),
+              Text(tr('Did you know?'), style: t.labelLarge?.copyWith(color: BrandColors.peacockInk)),
               const SizedBox(height: Space.xs),
-              Text(_fact, textAlign: TextAlign.center, style: t.bodyLarge),
+              Text(tr(_fact), textAlign: TextAlign.center, style: t.bodyLarge),
             ],
           ),
         ),

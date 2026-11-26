@@ -17,6 +17,7 @@ import '../../admin/data/photos.dart' show preparePhoto, readPhoto;
 import '../../admin/widgets/admin_widgets.dart' show pickPhoto;
 import '../../catalog/data/catalog.dart' show productProvider;
 import '../data/exchange_repository.dart';
+import '../../../core/i18n.dart';
 
 /// "₹4,000–₹5,000", or one amount when both ends match.
 String estimateRange(int low, int high) => low == high ? formatInr(low) : '${formatInr(low)}–${formatInr(high)}';
@@ -57,8 +58,8 @@ class ExchangeCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Exchange your old phone', style: t.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
-                    Text('Tell us about it. The shop replies with an estimate.',
+                    Text(tr('Exchange your old phone'), style: t.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(tr('Tell us about it. The shop replies with an estimate.'),
                         style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
                   ],
                 ),
@@ -131,13 +132,13 @@ class _ExchangeSheetState extends ConsumerState<ExchangeSheet> {
     final brand = tidy(_brand.text), model = tidy(_model.text);
     final (age, condition) = (_age, _condition);
     final missing = [
-      if (brand.isEmpty) 'the brand',
-      if (model.isEmpty) 'the model',
-      if (age == null) 'its age',
-      if (condition == null) 'its condition',
+      if (brand.isEmpty) tr('the brand'),
+      if (model.isEmpty) tr('the model'),
+      if (age == null) tr('its age'),
+      if (condition == null) tr('its condition'),
     ];
     if (missing.isNotEmpty || age == null || condition == null) {
-      setState(() => _error = 'Add ${missing.join(', ')}.');
+      setState(() => _error = tr('Add {list}.', {'list': missing.join(', ')}));
       return null;
     }
     return (brand: brand, model: model, age: age, condition: condition);
@@ -190,8 +191,8 @@ class _ExchangeSheetState extends ConsumerState<ExchangeSheet> {
       final router = GoRouter.of(context);
       final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context);
-      showMessageOn(messenger, 'Sent. The shop will reply with an estimate.',
-          action: SnackBarAction(label: 'View', onPressed: () => router.push('/repairs/exchanges')));
+      showMessageOn(messenger, tr('Sent. The shop will reply with an estimate.'),
+          action: SnackBarAction(label: tr('View'), onPressed: () => router.push('/repairs/exchanges')));
     });
   }
 
@@ -211,7 +212,7 @@ class _ExchangeSheetState extends ConsumerState<ExchangeSheet> {
     final shopPhone = ref.watch(storeSettingsProvider).value?.storePhone;
     Widget label(String s) => Padding(
           padding: const EdgeInsets.only(top: Space.md, bottom: Space.xs),
-          child: Text(s, style: t.titleSmall),
+          child: Text(tr(s), style: t.titleSmall),
         );
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -221,22 +222,22 @@ class _ExchangeSheetState extends ConsumerState<ExchangeSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Semantics(header: true, child: Text('Exchange your old phone', style: t.titleLarge)),
+            Semantics(header: true, child: Text(tr('Exchange your old phone'), style: t.titleLarge)),
             Text(
-              'The shop replies with an estimate. The final value is set when the shop checks the phone.',
+              tr('The shop replies with an estimate. The final value is set when the shop checks the phone.'),
               style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
             ),
             const SizedBox(height: Space.md),
             TextField(
               controller: _brand,
-              decoration: const InputDecoration(labelText: 'Brand', hintText: 'Samsung, Vivo, Redmi…'),
+              decoration: InputDecoration(labelText: tr('Brand'), hintText: 'Samsung, Vivo, Redmi…'),
               textCapitalization: TextCapitalization.words,
               inputFormatters: textInput(40),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _model,
-              decoration: const InputDecoration(labelText: 'Model', hintText: 'Galaxy A12'),
+              decoration: InputDecoration(labelText: tr('Model'), hintText: 'Galaxy A12'),
               textCapitalization: TextCapitalization.words,
               inputFormatters: textInput(60),
             ),
@@ -248,7 +249,7 @@ class _ExchangeSheetState extends ConsumerState<ExchangeSheet> {
                 for (final a in ExchangeAge.values)
                   ChoiceChip(
                     showCheckmark: false,
-                    label: Text(a.label),
+                    label: Text(tr(a.label)),
                     selected: _age == a,
                     onSelected: _busy ? null : (_) => setState(() => _age = a),
                   ),
@@ -266,8 +267,8 @@ class _ExchangeSheetState extends ConsumerState<ExchangeSheet> {
                     RadioListTile<ExchangeCondition>(
                       contentPadding: EdgeInsets.zero,
                       value: k,
-                      title: Text(k.label),
-                      subtitle: Text(k.hint),
+                      title: Text(tr(k.label)),
+                      subtitle: Text(tr(k.hint)),
                     ),
                 ],
               ),
@@ -282,15 +283,15 @@ class _ExchangeSheetState extends ConsumerState<ExchangeSheet> {
                   for (final p in _photos)
                     Chip(
                       avatar: const Icon(PhosphorIconsRegular.image, size: 16),
-                      label: Text('Photo ${_photos.indexOf(p) + 1}'),
+                      label: Text(tr('Photo {n}', {'n': _photos.indexOf(p) + 1})),
                       onDeleted: _busy ? null : () => setState(() => _photos.remove(p)),
-                      deleteButtonTooltipMessage: 'Remove photo',
+                      deleteButtonTooltipMessage: tr('Remove photo'),
                     ),
                   if (_photos.length < 3)
                     OutlinedButton.icon(
                       onPressed: _busy ? null : _addPhoto,
                       icon: const Icon(PhosphorIconsRegular.camera, size: 18),
-                      label: Text(_photos.isEmpty ? 'Add photos' : 'Add another'),
+                      label: Text(tr(_photos.isEmpty ? 'Add photos' : 'Add another')),
                     ),
                 ],
               ),
@@ -305,13 +306,13 @@ class _ExchangeSheetState extends ConsumerState<ExchangeSheet> {
                 onPressed: _busy ? null : _send,
                 child: _busy
                     ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text(signedIn ? 'Send to the shop' : 'Sign in to send'),
+                    : Text(tr(signedIn ? 'Send to the shop' : 'Sign in to send')),
               ),
             const SizedBox(height: Space.sm),
             OutlinedButton.icon(
               onPressed: _busy || shopPhone == null ? null : () => _whatsApp(shopPhone),
               icon: const WhatsAppIcon(),
-              label: const Text('Send on WhatsApp'),
+              label: Text(tr('Send on WhatsApp')),
             ),
           ],
         ),
@@ -342,15 +343,15 @@ class ExchangeRequestCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(child: Text('${r.brand} ${r.model}', style: t.titleSmall?.copyWith(fontWeight: FontWeight.w700))),
-                r.estimated ? const Tag('Estimate ready', tone: TagTone.ok) : const Tag('Waiting for the shop', tone: TagTone.neutral),
+                r.estimated ? Tag(tr('Estimate ready'), tone: TagTone.ok) : Tag(tr('Waiting for the shop'), tone: TagTone.neutral),
               ],
             ),
-            Text('${r.age.label} · ${r.condition.label}${r.photos.isEmpty ? '' : ' · ${r.photos.length} photo${r.photos.length == 1 ? '' : 's'}'}'
+            Text('${tr(r.age.label)} · ${tr(r.condition.label)}${r.photos.isEmpty ? '' : ' · ${tr(r.photos.length == 1 ? '{n} photo' : '{n} photos', {'n': r.photos.length})}'}'
                 ' · ${formatDate(r.createdAt)}', style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
             if (r.estimated) ...[
-              Text('About ${estimateRange(r.lowPaise!, r.highPaise!)}', style: t.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+              Text(tr('About {v}', {'v': estimateRange(r.lowPaise!, r.highPaise!)}), style: t.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
               if (r.note.isNotEmpty) Text(r.note, style: t.bodyMedium),
-              Text('An estimate: the final value is set when the shop checks the phone.',
+              Text(tr('An estimate: the final value is set when the shop checks the phone.'),
                   style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
             ],
             ?trailing,

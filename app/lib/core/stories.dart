@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'env.dart';
+import 'i18n.dart';
 import 'supabase.dart' show publicImageUrl;
 import 'theme/generative.dart';
 import 'theme/tokens.dart';
@@ -23,7 +24,7 @@ enum StoryApp {
 
   final String brand;
 
-  String get label => 'Share to $brand Story';
+  String get label => tr('Share to {brand} Story', {'brand': brand});
 }
 
 /// What the card shows: [photo] is a product-images key; [link] the share link, or how to find the app.
@@ -53,7 +54,7 @@ Future<void> shareStory(BuildContext context, StoryApp app, Story story) async {
     final ok = await _channel.invokeMethod<bool>('share', {'app': app.name, 'png': png, 'appId': Env.metaAppId});
     if (ok != true) throw StateError('${app.name} gone');
   } catch (_) {
-    if (context.mounted) showMessage(context, 'Couldn’t open ${app.brand}. Try again.');
+    if (context.mounted) showMessage(context, tr('Couldn’t open {brand}. Try again.', {'brand': app.brand}));
   } finally {
     _sharing = false;
   }

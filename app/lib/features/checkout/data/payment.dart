@@ -18,6 +18,7 @@ import '../../offers/data/offers.dart';
 import '../../orders/data/orders_repository.dart';
 import '../../payments/data/payment_gateway.dart';
 import '../../payments/data/payments_repository.dart';
+import '../../../core/i18n.dart';
 
 /// Server calls on the money path. The client never sends an amount: the server prices everything.
 abstract interface class PaymentApi {
@@ -194,11 +195,11 @@ class PayResult {
   /// Snackbar copy, or null when the next screen says it all.
   String? get message => switch (outcome) {
         PayOutcome.paid || PayOutcome.paidTooLate => null,
-        PayOutcome.cancelled => 'Payment cancelled. You can try again.',
-        PayOutcome.failed => 'Payment didn’t go through. You can try again.',
-        PayOutcome.unknown => 'Checking your payment. This can take a minute.',
+        PayOutcome.cancelled => tr('Payment cancelled. You can try again.'),
+        PayOutcome.failed => tr('Payment didn’t go through. You can try again.'),
+        PayOutcome.unknown => tr('Checking your payment. This can take a minute.'),
         PayOutcome.unavailable =>
-          error == null ? 'Online payment isn’t available right now. Try again later.' : friendlyError(error!),
+          error == null ? tr('Online payment isn’t available right now. Try again later.') : friendlyError(error!),
         // Network trouble after the sheet: the webhook will still confirm it, so stay calm.
         PayOutcome.unverified =>
           error is FunctionException && error is! FunctionsFetchException ? friendlyError(error!) : null,

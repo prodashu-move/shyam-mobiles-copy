@@ -28,26 +28,27 @@ import '../../payments/widgets/order_refunds.dart';
 import '../../reviews/widgets/review_widgets.dart' show RateProductButton;
 import '../data/orders.dart';
 import '../data/orders_repository.dart';
+import '../../../core/i18n.dart';
 
 String _paymentLine(Order o) => switch ((o.paymentMethod, o.paymentStatus)) {
-      (_, PaymentStatus.refunded) => 'Refunded',
-      (PaymentMethod.razorpay, PaymentStatus.paid) => 'Paid online',
-      (PaymentMethod.razorpay, _) when o.status == OrderStatus.cancelled => 'Not paid', // no payment is coming
-      (PaymentMethod.razorpay, _) => 'Not paid yet',
-      (PaymentMethod.cod, PaymentStatus.paid) => 'Paid on delivery',
-      (PaymentMethod.cod, _) => 'Cash on delivery',
+      (_, PaymentStatus.refunded) => tr('Refunded'),
+      (PaymentMethod.razorpay, PaymentStatus.paid) => tr('Paid online'),
+      (PaymentMethod.razorpay, _) when o.status == OrderStatus.cancelled => tr('Not paid'), // no payment is coming
+      (PaymentMethod.razorpay, _) => tr('Not paid yet'),
+      (PaymentMethod.cod, PaymentStatus.paid) => tr('Paid on delivery'),
+      (PaymentMethod.cod, _) => tr('Cash on delivery'),
     };
 
 String _kicker(Order o) => o.needsRefund
-    ? 'Refund due'
+    ? tr('Refund due')
     : switch (o.status) {
-        OrderStatus.pendingPayment => 'Payment pending',
-        OrderStatus.confirmed => 'Order received',
-        OrderStatus.packed => 'Getting ready',
-        OrderStatus.shipped => 'On its way',
-        OrderStatus.delivered => 'All done',
-        OrderStatus.cancelled => 'Order closed',
-        OrderStatus.refunded => 'Money returned',
+        OrderStatus.pendingPayment => tr('Payment pending'),
+        OrderStatus.confirmed => tr('Order received'),
+        OrderStatus.packed => tr('Getting ready'),
+        OrderStatus.shipped => tr('On its way'),
+        OrderStatus.delivered => tr('All done'),
+        OrderStatus.cancelled => tr('Order closed'),
+        OrderStatus.refunded => tr('Money returned'),
       };
 
 IconData _stepIcon(OrderStatus s) => switch (s) {
@@ -71,7 +72,7 @@ class OrderDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final order = ref.watch(orderProvider(orderId));
     return Scaffold(
-      appBar: AppBar(title: Text(order.value == null ? 'Order' : 'Order ${order.value!.number}')),
+      appBar: AppBar(title: Text(order.value == null ? tr('Order') : tr('Order {number}', {'number': order.value!.number}))),
       body: AsyncBody(
         value: order,
         onRetry: () => ref.invalidate(orderProvider(orderId)),
@@ -106,13 +107,13 @@ class _OrderBody extends StatelessWidget {
         if (o.status == OrderStatus.delivered)
           Padding(
             padding: const EdgeInsets.fromLTRB(Space.gutter, Space.lg, Space.gutter, 0),
-            child: RateCard(title: 'How was your order?', orderId: o.id),
+            child: RateCard(title: tr('How was your order?'), orderId: o.id),
           ),
         Padding(
           padding: const EdgeInsets.fromLTRB(Space.gutter, Space.lg, Space.gutter, 0),
           child: _Timeline(steps: buildTimeline(o)),
         ),
-        const SectionHeader('Items', gutter: Space.gutter),
+        SectionHeader(tr('Items'), gutter: Space.gutter),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
           child: Column(
@@ -134,11 +135,11 @@ class _OrderBody extends StatelessWidget {
                               children: [
                                 Text(item.productName, style: t.titleSmall),
                                 Text(
-                                  [if (item.variantName.isNotEmpty) item.variantName, 'Qty ${item.qty}'].join(' · '),
+                                  [if (item.variantName.isNotEmpty) item.variantName, tr('Qty {n}', {'n': item.qty})].join(' · '),
                                   style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
                                 ),
                                 if (item.forModel != null)
-                                  Text('For: ${item.forModel} · arranged for your phone',
+                                  Text(tr('For: {model} · arranged for your phone', {'model': item.forModel}),
                                       style: t.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
                                 if (o.status == OrderStatus.delivered && item.productId != null)
                                   RateProductButton(productId: item.productId!, productName: item.productName),
@@ -175,7 +176,7 @@ class _OrderBody extends StatelessWidget {
                     const SizedBox(width: Space.sm),
                     Expanded(
                       child: Text(
-                        'Check it: dial *#06# on the phone and match the box label.',
+                        tr('Check it: dial *#06# on the phone and match the box label.'),
                         style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
                       ),
                     ),
@@ -185,7 +186,7 @@ class _OrderBody extends StatelessWidget {
           ),
         ),
         if (o.status == OrderStatus.delivered) _Protect(productIds: [for (final i in o.items) ?i.productId]),
-        const SectionHeader('Need help with this order?', gutter: Space.gutter),
+        SectionHeader(tr('Need help with this order?'), gutter: Space.gutter),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
           child: Consumer(
@@ -197,7 +198,7 @@ class _OrderBody extends StatelessWidget {
             },
           ),
         ),
-        const SectionHeader('Delivery address', gutter: Space.gutter),
+        SectionHeader(tr('Delivery address'), gutter: Space.gutter),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
           child: Card(
@@ -216,7 +217,7 @@ class _OrderBody extends StatelessWidget {
             ),
           ),
         ),
-        const SectionHeader('Payment', gutter: Space.gutter),
+        SectionHeader(tr('Payment'), gutter: Space.gutter),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
           child: Card(
@@ -225,7 +226,7 @@ class _OrderBody extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('${o.paymentMethod.label} · ${_paymentLine(o)}', style: t.bodyMedium),
+                  Text('${tr(o.paymentMethod.label)} · ${_paymentLine(o)}', style: t.bodyMedium),
                   const SizedBox(height: Space.xs),
                   TotalsRows(
                     subtotalPaise: o.subtotalPaise,
@@ -258,7 +259,7 @@ class _Protect extends ConsumerWidget {
     for (final id in productIds) {
       final fits = ref.watch(fitsProvider(id)).whenData((cards) => [for (final c in cards) if (c.inStock) c]);
       if (fits.value?.isNotEmpty ?? false) {
-        return ProductRail(title: 'Protect your new phone', band: sectionTints.fits, value: fits);
+        return ProductRail(title: tr('Protect your new phone'), band: sectionTints.fits, value: fits);
       }
     }
     return const SizedBox.shrink();
@@ -289,25 +290,25 @@ class _StatusHero extends StatelessWidget {
           const SizedBox(height: Space.xs),
           Semantics(
             header: true,
-            child: Text(o.status.label, style: t.displaySmall?.copyWith(color: fg)),
+            child: Text(tr(o.status.label), style: t.displaySmall?.copyWith(color: fg)),
           ),
           const SizedBox(height: Space.xs),
           Text(
-            'Placed ${formatDate(o.createdAt)} · ${_paymentLine(o)}',
+            tr('Placed {date} · {pay}', {'date': formatDate(o.createdAt), 'pay': _paymentLine(o)}),
             style: t.bodySmall?.copyWith(color: fg.withValues(alpha: 0.85)),
           ),
           if (o.canRetryPayment)
             Padding(
               padding: const EdgeInsets.only(top: Space.xs),
               child: Text(
-                'Pay by ${DateFormat('h:mm a').format(o.reservedUntil!.toLocal())} to keep this order.',
+                tr('Pay by {time} to keep this order.', {'time': DateFormat('h:mm a').format(o.reservedUntil!.toLocal())}),
                 style: t.bodySmall?.copyWith(color: fg, fontWeight: FontWeight.w700),
               ),
             ),
           if ((tracking == null || tracking.isEmpty) && o.courier != null)
             Padding(
               padding: const EdgeInsets.only(top: Space.xs),
-              child: Text('Delivery by ${o.courier}', style: t.bodySmall?.copyWith(color: fg)),
+              child: Text(tr('Delivery by {courier}', {'courier': o.courier}), style: t.bodySmall?.copyWith(color: fg)),
             ),
           if (tracking != null && tracking.isNotEmpty)
             Container(
@@ -335,10 +336,10 @@ class _StatusHero extends StatelessWidget {
                     onPressed: () async {
                       final messenger = ScaffoldMessenger.of(context);
                       await Clipboard.setData(ClipboardData(text: tracking));
-                      _say(messenger, 'Tracking number copied');
+                      _say(messenger, tr('Tracking number copied'));
                     },
                     icon: const Icon(PhosphorIconsRegular.copy, size: 18),
-                    label: const Text('Copy', semanticsLabel: 'Copy tracking number'),
+                    label: Text(tr('Copy'), semanticsLabel: tr('Copy tracking number')),
                   ),
                 ],
               ),
@@ -410,7 +411,7 @@ class _Timeline extends StatelessWidget {
                 Expanded(
                   child: Semantics(
                     container: true,
-                    label: s.done ? null : 'Upcoming',
+                    label: s.done ? null : tr('Upcoming'),
                     child: Padding(
                       padding: const EdgeInsets.only(top: Space.xs, bottom: 18),
                       child: Column(
@@ -459,7 +460,7 @@ class _ActionsState extends ConsumerState<_Actions> {
     final r = await container.read(paymentFlowProvider.notifier).pay(o.id);
     if (r == null) return;
     if (r.outcome == PayOutcome.paid) unawaited(HapticFeedback.mediumImpact());
-    if (r.message ?? (r.outcome == PayOutcome.paid ? 'Payment received. Your order is confirmed.' : null) case final m?) {
+    if (r.message ?? (r.outcome == PayOutcome.paid ? tr('Payment received. Your order is confirmed.') : null) case final m?) {
       _say(messenger, m);
     }
     container.invalidate(orderProvider(o.id));
@@ -471,14 +472,14 @@ class _ActionsState extends ConsumerState<_Actions> {
     final paid = o.paymentStatus == PaymentStatus.paid;
     final ok = await confirmChoice(
       context,
-      title: 'Cancel this order?',
+      title: tr('Cancel this order?'),
       message: paid
-          ? 'We’ll refund ${formatInr(o.totalPaise)} to your original payment method. Banks usually take 5–7 working days.'
+          ? tr('We’ll refund {amt} to your original payment method. Banks usually take 5–7 working days.', {'amt': formatInr(o.totalPaise)})
           : o.status == OrderStatus.pendingPayment
-              ? 'If you already paid, we’ll refund it in full.'
-              : 'This can’t be undone.',
-      action: 'Cancel order',
-      keep: 'Keep order',
+              ? tr('If you already paid, we’ll refund it in full.')
+              : tr('This can’t be undone.'),
+      action: tr('Cancel order'),
+      keep: tr('Keep order'),
       destructive: true,
     ).whenComplete(() => _asking = false);
     if (!ok || !mounted) return;
@@ -487,7 +488,7 @@ class _ActionsState extends ConsumerState<_Actions> {
     setState(() => _busy = true);
     try {
       await container.read(ordersRepositoryProvider).cancel(o.id);
-      _say(messenger, 'Order cancelled');
+      _say(messenger, tr('Order cancelled'));
     } catch (e) {
       _say(messenger, friendlyError(e));
     } finally {
@@ -504,10 +505,10 @@ class _ActionsState extends ConsumerState<_Actions> {
     try {
       final added = await reorder(container.read(supabaseProvider), container.read(cartProvider.notifier), o);
       if (added == 0) {
-        _say(messenger, 'These items are out of stock now.');
+        _say(messenger, tr('These items are out of stock now.'));
         return;
       }
-      if (added < o.items.length) _say(messenger, 'Some items are out of stock now.');
+      if (added < o.items.length) _say(messenger, tr('Some items are out of stock now.'));
       router.go('/cart');
     } catch (e) {
       _say(messenger, friendlyError(e));
@@ -525,7 +526,7 @@ class _ActionsState extends ConsumerState<_Actions> {
         child: FilledButton(
           onPressed: stage == PayStage.idle && !_busy ? _retry : null,
           child: Text(
-            stage == PayStage.idle ? 'Pay ${formatInr(o.totalPaise)}' : stage.label,
+            stage == PayStage.idle ? tr('Pay {amt}', {'amt': formatInr(o.totalPaise)}) : tr(stage.label),
             style: const TextStyle(fontFeatures: tabularFigures),
           ),
         ),
@@ -540,10 +541,10 @@ class _ActionsState extends ConsumerState<_Actions> {
             OutlinedButton.icon(
               onPressed: _busy ? null : _reorder,
               icon: const Icon(PhosphorIconsRegular.arrowClockwise),
-              label: const Text('Reorder'),
+              label: Text(tr('Reorder')),
             ),
           // destructive, so quiet and last: out of the main path
-          if (o.canCancel) CancelButton(label: _busy ? 'Cancelling…' : 'Cancel order', onPressed: _busy || stage != PayStage.idle ? null : _cancel),
+          if (o.canCancel) CancelButton(label: _busy ? tr('Cancelling…') : tr('Cancel order'), onPressed: _busy || stage != PayStage.idle ? null : _cancel),
         ],
       ),
     );

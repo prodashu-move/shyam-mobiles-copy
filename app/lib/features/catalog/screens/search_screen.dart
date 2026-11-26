@@ -22,6 +22,7 @@ import '../../../core/widgets/widgets.dart';
 import '../data/catalog.dart';
 import '../data/phone_models.dart';
 import '../widgets/product_tile.dart';
+import '../../../core/i18n.dart';
 
 const _priceCaps = [150000, 500000, 1500000, 3000000, 5000000];
 const _phoneBands = <(int?, int?)>[(null, 1000000), (null, 1500000), (null, 2500000), (2500000, null)];
@@ -179,12 +180,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         onChanged: _onChanged,
                         onSubmitted: _searchFor,
                         decoration: InputDecoration(
-                          hintText: 'Search phones, cases, chargers…',
+                          hintText: tr('Search phones, cases, chargers…'),
                           prefixIcon: const Icon(PhosphorIconsRegular.magnifyingGlass, size: 20),
                           suffixIcon: value.text.isEmpty
                               ? null
                               : IconButton(
-                                  tooltip: 'Clear search',
+                                  tooltip: tr('Clear search'),
                                   icon: const Icon(PhosphorIconsRegular.xCircle, size: 20),
                                   onPressed: () {
                                     _text.clear();
@@ -206,12 +207,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 spacing: Space.sm,
                 children: [
                   PickerChip(
-                    label: categoryName ?? 'Category',
+                    label: categoryName ?? tr('Category'),
                     selected: _category != null,
                     onTap: () => _pick<String>(
-                      'Category',
+                      tr('Category'),
                       ref.read(categoriesProvider.future).then((cs) => [
-                            (null, 'All categories'),
+                            (null, tr('All categories')),
                             for (final c in cs) (c.slug, c.name),
                           ]),
                       _category,
@@ -219,12 +220,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                   ),
                   PickerChip(
-                    label: brandName ?? 'Brand',
+                    label: brandName ?? tr('Brand'),
                     selected: _brand != null,
                     onTap: () => _pick<String>(
-                      'Brand',
+                      tr('Brand'),
                       ref.read(brandsProvider.future).then((bs) => [
-                            (null, 'All brands'),
+                            (null, tr('All brands')),
                             for (final b in bs) (b.slug, b.name),
                           ]),
                       _brand,
@@ -232,17 +233,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                   ),
                   PickerChip(
-                    label: _priceLabel ?? 'Price',
+                    label: _priceLabel ?? tr('Price'),
                     selected: _minPrice != null || _maxPrice != null,
                     onTap: () => _pick<(int?, int?)>(
-                      'Price',
+                      tr('Price'),
                       // phones: the same budget bands as Home's "Shop by budget"
                       Future.value([
-                        (null, 'Any price'),
+                        (null, tr('Any price')),
                         if (category?.kind == CategoryKind.phone)
-                          for (final (min, max) in _phoneBands) ((min, max), max == null ? 'Above ${formatInr(min!)}' : 'Under ${formatInr(max)}')
+                          for (final (min, max) in _phoneBands) ((min, max), max == null ? tr('Above {amt}', {'amt': formatInr(min!)}) : tr('Under {amt}', {'amt': formatInr(max)}))
                         else
-                          for (final p in _priceCaps) ((null, p), 'Under ${formatInr(p)}'),
+                          for (final p in _priceCaps) ((null, p), tr('Under {amt}', {'amt': formatInr(p)})),
                       ]),
                       _minPrice == null && _maxPrice == null ? null : (_minPrice, _maxPrice),
                       (v) {
@@ -252,18 +253,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                   ),
                   FilterChip(
-                    label: const Text('In stock'),
+                    label: Text(tr('In stock')),
                     selected: _inStock,
                     showCheckmark: false,
                     onSelected: (v) => setState(() => _inStock = v),
                   ),
                   PickerChip(
-                    label: _sort.label,
+                    label: tr(_sort.label),
                     icon: PhosphorIconsRegular.sortAscending,
                     selected: false,
                     onTap: () => _pick<SearchSort>(
-                      'Sort by',
-                      Future.value([for (final s in SearchSort.values) (s, s.label)]),
+                      tr('Sort by'),
+                      Future.value([for (final s in SearchSort.values) (s, tr(s.label))]),
                       _sort,
                       (v) => _sort = v ?? SearchSort.relevance,
                     ),
@@ -290,25 +291,25 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   /// "Under ₹15,000", "₹10,000 – ₹25,000", "Above ₹25,000"; null with no price filter.
   String? get _priceLabel => switch ((_minPrice, _maxPrice)) {
         (null, null) => null,
-        (null, final max?) => 'Under ${formatInr(max)}',
-        (final min?, null) => 'Above ${formatInr(min)}',
+        (null, final max?) => tr('Under {amt}', {'amt': formatInr(max)}),
+        (final min?, null) => tr('Above {amt}', {'amt': formatInr(min)}),
         (final min?, final max?) => '${formatInr(min)} – ${formatInr(max)}',
       };
 
   /// "35 products"; in a category, "11 phones" or "18 accessories".
   static String _count(int n, Category? category) {
     final (one, many) = switch (category?.kind) {
-      CategoryKind.phone => ('phone', 'phones'),
-      CategoryKind.accessory => ('accessory', 'accessories'),
-      _ => ('product', 'products'),
+      CategoryKind.phone => (tr('1 phone'), tr('{n} phones', {'n': n})),
+      CategoryKind.accessory => (tr('1 accessory'), tr('{n} accessories', {'n': n})),
+      _ => (tr('1 product'), tr('{n} products', {'n': n})),
     };
-    return '$n ${n == 1 ? one : many}';
+    return n == 1 ? one : many;
   }
 
   Future<void> _askOnWhatsApp() async {
     final phone = (await ref.read(storeSettingsProvider.future)).storePhone;
-    final what = _q.isEmpty ? 'a product I couldn’t find in the app' : '“$_q”';
-    if (mounted) await openUri(context, whatsAppUri(phone, text: 'Hi, do you have $what?'));
+    final what = _q.isEmpty ? tr('a product I couldn’t find in the app') : '“$_q”';
+    if (mounted) await openUri(context, whatsAppUri(phone, text: tr('Hi, do you have {what}?', {'what': what})));
   }
 
   Widget _results(SearchParams params, SearchResults r, Category? category) {
@@ -350,7 +351,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           onPressed: () => _searchFor(r),
                         ),
                       for (final p in _popular.where((p) => !_recent.contains(p)))
-                        ActionChip(label: Text(p), onPressed: () => _searchFor(p)),
+                        ActionChip(label: Text(tr(p)), onPressed: () => _searchFor(p)), // searches the English term the catalogue holds
                     ],
                   ),
                 ),
@@ -369,8 +370,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 child: EmptyState(
                   icon: PhosphorIconsRegular.magnifyingGlass,
                   tone: Worlds.search,
-                  title: 'We couldn’t find that',
-                  message: 'Try another word, or ask us. We may be able to get it for you.',
+                  title: tr('We couldn’t find that'),
+                  message: tr('Try another word, or ask us. We may be able to get it for you.'),
                   action: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -383,9 +384,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           foregroundColor: BrandColors.ink,
                         ),
                         icon: const Icon(PhosphorIconsFill.whatsappLogo),
-                        label: const Text('Ask on WhatsApp'),
+                        label: Text(tr('Ask on WhatsApp')),
                       ),
-                      if (_filtered) OutlinedButton(onPressed: _clearFilters, child: const Text('Clear filters')),
+                      if (_filtered) OutlinedButton(onPressed: _clearFilters, child: Text(tr('Clear filters'))),
                     ],
                   ),
                 ),
@@ -401,7 +402,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   child: TextButton.icon(
                     onPressed: () => notifier.loadMore(retry: true),
                     icon: const Icon(PhosphorIconsRegular.arrowClockwise),
-                    label: const Text('Couldn’t load more. Try again'),
+                    label: Text(tr('Couldn’t load more. Try again')),
                   ),
                 ),
               )
@@ -456,8 +457,8 @@ class ModelAccessories extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionHeader('Accessories for $model', inset: false),
-          Text('We arrange these for your exact phone. Not from stock.', style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
+          SectionHeader(tr('Accessories for {model}', {'model': model}), inset: false),
+          Text(tr('We arrange these for your exact phone. Not from stock.'), style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
           const SizedBox(height: Space.sm),
           for (final card in types)
             ListTile(
@@ -466,8 +467,9 @@ class ModelAccessories extends ConsumerWidget {
                   ? SizedBox.square(dimension: 48, child: MadeToOrderArt(card.name))
                   : SizedBox.square(dimension: 48, child: ProductImage(card.coverPath, radius: Radii.md, padding: 0)),
               title: Text(card.name),
-              subtitle: Text('from ${formatInr(card.minPricePaise)} · ready in ${card.leadDays ?? 2} '
-                  '${card.leadDays == 1 ? 'day' : 'days'}'),
+              subtitle: Text(card.leadDays == 1
+                  ? tr('from {amt} · ready in 1 day', {'amt': formatInr(card.minPricePaise)})
+                  : tr('from {amt} · ready in {n} days', {'amt': formatInr(card.minPricePaise), 'n': card.leadDays ?? 2})),
               trailing: const Icon(PhosphorIconsRegular.caretRight),
               onTap: () => context.push('/product/${card.slug}?for=${Uri.encodeQueryComponent(model)}'),
             ),

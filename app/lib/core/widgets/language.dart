@@ -5,7 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../i18n.dart';
 import '../theme/tokens.dart';
 
-/// Home's top-bar switch: one tap flips हिंदी / English. Shows the letter of the language it switches to.
+/// Home's switch, beside the search: one tap flips हिंदी / English. Shows the letter of the language it switches to.
 class LanguageButton extends ConsumerWidget {
   const LanguageButton({super.key});
 
@@ -14,7 +14,6 @@ class LanguageButton extends ConsumerWidget {
     final hi = ref.watch(languageProvider) == Language.hi;
     return IconButton(
       tooltip: tr('Change language'),
-      visualDensity: VisualDensity.compact, // the bar already holds the bell, WhatsApp and Call
       onPressed: () => ref.read(languageProvider.notifier).choose(hi ? Language.en : Language.hi),
       icon: Text(hi ? 'A' : 'अ', style: Theme.of(context).textTheme.titleLarge?.copyWith(height: 1)),
     );

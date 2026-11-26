@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import 'i18n.dart';
 import '../features/account/data/profile.dart';
 import '../features/account/screens/account_screen.dart';
 import '../features/account/screens/address_form_screen.dart';
@@ -278,20 +279,20 @@ class AppShell extends ConsumerWidget {
     final isAdmin = ref.watch(isAdminProvider).value ?? false;
     final cartCount = ref.watch(cartCountProvider);
     final destinations = [
-      const NavigationDestination(
-        icon: Icon(PhosphorIconsRegular.house),
-        selectedIcon: Icon(PhosphorIconsFill.house),
-        label: 'Home',
+      NavigationDestination(
+        icon: const Icon(PhosphorIconsRegular.house),
+        selectedIcon: const Icon(PhosphorIconsFill.house),
+        label: tr('Home'),
       ),
-      const NavigationDestination(
-        icon: Icon(PhosphorIconsRegular.magnifyingGlass),
-        selectedIcon: Icon(PhosphorIconsBold.magnifyingGlass),
-        label: 'Search',
+      NavigationDestination(
+        icon: const Icon(PhosphorIconsRegular.magnifyingGlass),
+        selectedIcon: const Icon(PhosphorIconsBold.magnifyingGlass),
+        label: tr('Search'),
       ),
-      const NavigationDestination(
-        icon: Icon(PhosphorIconsRegular.wrench),
-        selectedIcon: Icon(PhosphorIconsFill.wrench),
-        label: 'Repairs',
+      NavigationDestination(
+        icon: const Icon(PhosphorIconsRegular.wrench),
+        selectedIcon: const Icon(PhosphorIconsFill.wrench),
+        label: tr('Repairs'),
       ),
       NavigationDestination(
         icon: Bump(
@@ -310,19 +311,19 @@ class AppShell extends ConsumerWidget {
             child: const Icon(PhosphorIconsFill.shoppingBag),
           ),
         ),
-        label: 'Cart',
-        tooltip: cartCount > 0 ? 'Cart, $cartCount items' : 'Cart',
+        label: tr('Cart'),
+        tooltip: cartCount > 0 ? tr('Cart, {n} items', {'n': cartCount}) : tr('Cart'),
       ),
-      const NavigationDestination(
-        icon: Icon(PhosphorIconsRegular.user),
-        selectedIcon: Icon(PhosphorIconsFill.user),
-        label: 'Account',
+      NavigationDestination(
+        icon: const Icon(PhosphorIconsRegular.user),
+        selectedIcon: const Icon(PhosphorIconsFill.user),
+        label: tr('Account'),
       ),
       if (isAdmin)
-        const NavigationDestination(
-          icon: Icon(PhosphorIconsRegular.storefront),
-          selectedIcon: Icon(PhosphorIconsFill.storefront),
-          label: 'Admin',
+        NavigationDestination(
+          icon: const Icon(PhosphorIconsRegular.storefront),
+          selectedIcon: const Icon(PhosphorIconsFill.storefront),
+          label: tr('Admin'),
         ),
     ];
     final selected = shell.currentIndex < destinations.length ? shell.currentIndex : 0;

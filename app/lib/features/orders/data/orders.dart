@@ -6,6 +6,7 @@ import '../../../core/paging.dart';
 import '../../../core/supabase.dart';
 import '../../cart/data/cart.dart';
 import 'orders_repository.dart';
+import '../../../core/i18n.dart';
 
 const ordersPageSize = 20;
 
@@ -70,9 +71,9 @@ class TimelineStep {
 const _happyPath = [OrderStatus.confirmed, OrderStatus.packed, OrderStatus.shipped, OrderStatus.delivered];
 
 String _title(OrderStatus s) => switch (s) {
-      OrderStatus.pendingPayment => 'Order placed',
-      OrderStatus.confirmed => 'Order confirmed',
-      _ => s.label,
+      OrderStatus.pendingPayment => tr('Order placed'),
+      OrderStatus.confirmed => tr('Order confirmed'),
+      _ => tr(s.label),
     };
 
 /// `order_events` oldest first, then the happy-path steps still to come (none once cancelled/refunded).
@@ -95,7 +96,7 @@ List<TimelineStep> buildTimeline(Order o) {
       steps.add(TimelineStep(
         status: s,
         title: _title(s),
-        note: s == OrderStatus.delivered ? 'Usually 2–4 days after shipping' : null,
+        note: s == OrderStatus.delivered ? tr('Usually 2–4 days after shipping') : null,
       ));
     }
   }

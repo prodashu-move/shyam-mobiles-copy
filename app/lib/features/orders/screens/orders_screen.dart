@@ -13,6 +13,7 @@ import '../../../core/widgets/widgets.dart';
 import '../../admin/widgets/admin_widgets.dart' show orderTone;
 import '../../checkout/screens/widgets.dart';
 import '../data/orders.dart';
+import '../../../core/i18n.dart';
 
 /// Status label for lists and the detail hero. A paid-then-cancelled order reads "Refund due".
 class OrderStatusTag extends StatelessWidget {
@@ -22,8 +23,8 @@ class OrderStatusTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (order.needsRefund) return const Tag('Refund due', tone: TagTone.deal);
-    return Tag(order.status.label, tone: orderTone(order.status));
+    if (order.needsRefund) return Tag(tr('Refund due'), tone: TagTone.deal);
+    return Tag(tr(order.status.label), tone: orderTone(order.status));
   }
 }
 
@@ -42,7 +43,7 @@ class OrdersScreen extends ConsumerWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('My orders'),
+          title: Text(tr('My orders')),
           leading: canPop ? null : BackButton(onPressed: () => context.go('/account')),
         ),
         body: AsyncBody(
@@ -69,12 +70,12 @@ class OrdersScreen extends ConsumerWidget {
                     EmptyState(
                       icon: PhosphorIconsRegular.package,
                       tone: Worlds.shop,
-                      title: 'No orders yet',
-                      message: 'Orders you place show up here, with where each one is.',
+                      title: tr('No orders yet'),
+                      message: tr('Orders you place show up here, with where each one is.'),
                       action: FilledButton.icon(
                         onPressed: () => context.go('/'),
                         icon: const Icon(PhosphorIconsRegular.storefront),
-                        label: const Text('Start shopping'),
+                        label: Text(tr('Start shopping')),
                       ),
                     ),
                   ],
@@ -99,7 +100,7 @@ class OrdersScreen extends ConsumerWidget {
                       : PagedFooter(
                           failed: page.moreFailed,
                           onRetry: () => ref.read(ordersProvider.notifier).loadMore(retry: true),
-                          what: 'more orders',
+                          what: tr('more orders'),
                         ),
                 ),
               ),
@@ -149,7 +150,7 @@ class _OrderTile extends StatelessWidget {
                     ),
                     const SizedBox(height: Space.xs),
                     Text(
-                      '${formatDate(order.createdAt)} · $count ${count == 1 ? 'item' : 'items'}',
+                      '${formatDate(order.createdAt)} · ${count == 1 ? tr('1 item') : tr('{n} items', {'n': count})}',
                       style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
                     ),
                     const SizedBox(height: Space.xs),

@@ -1,4 +1,5 @@
 import '../format.dart';
+import '../i18n.dart';
 import 'catalog.dart';
 
 /// One cart row, as loaded by
@@ -61,8 +62,9 @@ enum AddressLabel {
   work('Work'),
   other('Other');
 
-  const AddressLabel(this.displayName);
-  final String displayName; // the DB value is `name`
+  const AddressLabel(this._en);
+  final String _en;
+  String get displayName => tr(_en); // the DB value is `name`
 
   static AddressLabel parse(String? v) => values.asNameMap()[v] ?? home; // old order snapshots have no label
 }

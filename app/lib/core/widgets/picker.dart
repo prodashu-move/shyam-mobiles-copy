@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../errors.dart';
+import '../i18n.dart';
 import '../input.dart';
 import '../theme/tokens.dart';
 import 'widgets.dart';
@@ -144,7 +145,7 @@ class _PickerSheetState<T> extends State<_PickerSheet<T>> {
                 children: [
                   Expanded(child: Semantics(header: true, child: Text(widget.title, style: t.titleLarge))),
                   if (_ticked case final ticked?)
-                    FilledButton(onPressed: () => Navigator.pop(context, ticked), child: Text('Done (${ticked.length})')),
+                    FilledButton(onPressed: () => Navigator.pop(context, ticked), child: Text(tr('Done ({n})', {'n': ticked.length}))),
                 ],
               ),
             ),
@@ -165,12 +166,12 @@ class _PickerSheetState<T> extends State<_PickerSheet<T>> {
                     }
                   },
                   decoration: InputDecoration(
-                    hintText: widget.searchHint ?? 'Search',
+                    hintText: widget.searchHint ?? tr('Search'),
                     prefixIcon: const Icon(PhosphorIconsRegular.magnifyingGlass, size: 20),
                     suffixIcon: q.isEmpty
                         ? null
                         : IconButton(
-                            tooltip: 'Clear search',
+                            tooltip: tr('Clear search'),
                             icon: const Icon(PhosphorIconsRegular.xCircle, size: 20),
                             onPressed: () => setState(_query.clear),
                           ),
@@ -194,7 +195,7 @@ class _PickerSheetState<T> extends State<_PickerSheet<T>> {
                   if (shown.isEmpty && !canCreate)
                     Padding(
                       padding: const EdgeInsets.all(Space.lg),
-                      child: Text('Nothing matches “${_query.text.trim()}”.',
+                      child: Text(tr('Nothing matches “{q}”.', {'q': _query.text.trim()}),
                           style: t.bodyMedium?.copyWith(color: c.onSurfaceVariant)),
                     ),
                   if (canCreate)
@@ -203,7 +204,7 @@ class _PickerSheetState<T> extends State<_PickerSheet<T>> {
                       leading: _creating
                           ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(PhosphorIconsRegular.plusCircle),
-                      title: Text('${widget.createLabel} “${(widget.createName ?? (String s) => s)(_query.text.trim())}”'),
+                      title: Text('${tr(widget.createLabel)} “${(widget.createName ?? (String s) => s)(_query.text.trim())}”'),
                       onTap: _creating ? null : _create,
                     ),
                 ],
@@ -304,7 +305,7 @@ class MultiPickerField<T> extends FormField<Set<T>> {
             }
 
             final names = value.map(labelOf).toList();
-            final summary = names.length <= 2 ? names.join(', ') : '${names.take(2).join(', ')} +${names.length - 2} more';
+            final summary = names.length <= 2 ? names.join(', ') : '${names.take(2).join(', ')} ${tr('+{n} more', {'n': names.length - 2})}';
             return Semantics(
               button: true,
               label: value.isEmpty ? label : '$label, ${names.join(', ')}',

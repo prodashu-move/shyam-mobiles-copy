@@ -6,6 +6,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../core/errors.dart';
 import '../../../core/format.dart';
+import '../../../core/i18n.dart';
 import '../../../core/models/models.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/widgets.dart';
@@ -28,15 +29,15 @@ class AddressesScreen extends ConsumerWidget {
     final addresses = ref.watch(addressesProvider);
     final count = addresses.value?.length ?? 0;
     return Scaffold(
-      appBar: AppBar(title: const Text('Addresses')),
+      appBar: AppBar(title: Text(tr('Addresses'))),
       floatingActionButton: count == 0
           ? null
           : FloatingActionButton.extended(
               onPressed: () => count >= 10 // DB trigger limit
-                  ? showMessage(context, 'You can save up to 10 addresses. Delete one to add another.')
+                  ? showMessage(context, tr('You can save up to 10 addresses. Delete one to add another.'))
                   : context.push('/account/addresses/new'),
               icon: const Icon(PhosphorIconsRegular.plus),
-              label: const Text('Add address'),
+              label: Text(tr('Add address')),
             ),
       body: AsyncBody(
         value: addresses,
@@ -46,12 +47,12 @@ class AddressesScreen extends ConsumerWidget {
             ? EmptyState(
                 icon: PhosphorIconsRegular.mapPin,
                 tone: Worlds.search,
-                title: 'No saved addresses',
-                message: 'Add one now and checkout gets quicker.',
+                title: tr('No saved addresses'),
+                message: tr('Add one now and checkout gets quicker.'),
                 action: FilledButton.icon(
                   onPressed: () => context.push('/account/addresses/new'),
                   icon: const Icon(PhosphorIconsRegular.plus),
-                  label: const Text('Add address'),
+                  label: Text(tr('Add address')),
                 ),
               )
             : RefreshIndicator(
@@ -94,19 +95,19 @@ class _AddressCard extends ConsumerWidget {
           await context.push('/account/addresses/${address.id}');
         case _Action.makeDefault:
           await notifier.setDefault(address.id!);
-          if (context.mounted) showMessage(context, 'Default address updated.');
+          if (context.mounted) showMessage(context, tr('Default address updated.'));
         case _Action.delete:
           final ok = await confirmChoice(
             context,
-            title: 'Delete this address?',
+            title: tr('Delete this address?'),
             message: address.oneLine,
-            action: 'Delete',
-            keep: 'Keep address',
+            action: tr('Delete'),
+            keep: tr('Keep address'),
             destructive: true,
           );
           if (!ok) return;
           await notifier.delete(address.id!);
-          if (context.mounted) showMessage(context, 'Address deleted.');
+          if (context.mounted) showMessage(context, tr('Address deleted.'));
       }
     } catch (e) {
       if (context.mounted) showMessage(context, friendlyError(e));
@@ -137,8 +138,8 @@ class _AddressCard extends ConsumerWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(address.name, style: t.titleSmall),
-                        Tag(address.label.displayName),
-                        if (address.isDefault) const Tag('Default', tone: TagTone.ok),
+                        Tag(tr(address.label.displayName)),
+                        if (address.isDefault) Tag(tr('Default'), tone: TagTone.ok),
                       ],
                     ),
                     Text(address.oneLine, style: t.bodyMedium?.copyWith(color: c.onSurfaceVariant)),
@@ -147,14 +148,14 @@ class _AddressCard extends ConsumerWidget {
                 ),
               ),
               PopupMenuButton<_Action>(
-                tooltip: 'Address options',
+                tooltip: tr('Address options'),
                 icon: const Icon(PhosphorIconsRegular.dotsThreeVertical),
                 onSelected: (a) => _run(context, ref, a),
                 itemBuilder: (_) => [
-                  const PopupMenuItem(value: _Action.edit, child: Text('Edit')),
+                  PopupMenuItem(value: _Action.edit, child: Text(tr('Edit'))),
                   if (!address.isDefault)
-                    const PopupMenuItem(value: _Action.makeDefault, child: Text('Set as default')),
-                  const PopupMenuItem(value: _Action.delete, child: Text('Delete')),
+                    PopupMenuItem(value: _Action.makeDefault, child: Text(tr('Set as default'))),
+                  PopupMenuItem(value: _Action.delete, child: Text(tr('Delete'))),
                 ],
               ),
             ],

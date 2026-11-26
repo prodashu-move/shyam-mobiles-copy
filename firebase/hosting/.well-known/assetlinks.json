@@ -1,12 +1,13 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.shyammobiles.app",
       "sha256_cert_fingerprints": [
-        "[[PLAY APP SIGNING KEY SHA-256]]",
-        "[[UPLOAD KEY SHA-256]]"
+        "1A:AC:62:2A:75:CE:3D:BA:2B:DC:71:48:FA:F5:43:FF:7F:24:06:30:D7:03:0A:FF:87:BC:A6:D0:49:8E:6A:9C"
       ]
     }
   }

@@ -69,7 +69,7 @@ phone or SMS flood costs little; and we collect only what the shop needs, keep i
 
   Once everything runs on these accounts, remove Editor from the default compute account. Engineers move from build-time Firebase Develop Admin to `roles/firebase.viewer` at launch. Deploys go only through CI.
 - **Keyless CI deploys:** Workload Identity Federation.
-  - Pool `github`, OIDC provider `token.actions.githubusercontent.com`, attribute condition `assertion.repository == 'ashusnapx/shyam-mobiles' && assertion.ref == 'refs/heads/main'`.
+  - Pool `github`, OIDC provider `token.actions.githubusercontent.com`, attribute condition `assertion.repository == 'prodashu/shyam-mobiles' && assertion.ref == 'refs/heads/main'`.
   - `google-github-actions/auth` impersonates `deployer@`. The deploy job runs only in a GitHub `production` environment with the owner as required reviewer.
   - `deployer@` gets Firebase Develop Admin + Service Account User on the four runtime accounts + Secret Manager Viewer. Add only what a failed deploy names. No JSON key in GitHub secrets.
 

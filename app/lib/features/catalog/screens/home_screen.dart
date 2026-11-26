@@ -42,8 +42,6 @@ import '../../../core/i18n.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  static const _slides = 6; // banners first, then featured products
-
   Future<void> _refresh(BuildContext context, WidgetRef ref) async {
     ref.invalidate(categoriesProvider);
     ref.invalidate(storeSettingsProvider);
@@ -118,14 +116,15 @@ class HomeScreen extends ConsumerWidget {
         ),
       ];
     }
-    // the owner's banners first, then the automatic ones that are on, then featured products, six at most
+    // every banner the owner made, in Admin's order; then the automatic ones that are on and featured products,
+    // filling up to 6 slides (8 on a tablet)
     final latest = ref.watch(latestProvider).value ?? const <ProductCard>[];
     final auto = autoSlides(settings?.autoBanners ?? StoreSettings.defaultAutoBanners,
         cards: [...d.featured, ...d.accessories, ...latest], newest: latest, now: DateTime.now());
     final shown = {for (final a in auto) ?a.card?.id};
     final offers = ref.watch(availableOffersProvider).value ?? const <Offer>[];
     final pool = [...latest, ...d.featured, ...d.accessories]; // newest first: the cut-outs fanned on slides with no photo
-    final slides = <_Slide>[
+    final banners = <_Slide>[
       for (final b in ref.watch(homeBannersProvider))
         (
           key: 'banner ${b.id}',
@@ -135,6 +134,8 @@ class HomeScreen extends ConsumerWidget {
               offer: offers.where((o) => o.id == b.promotionId).firstOrNull,
               onTap: () => openAppLink(context, b.link)),
         ),
+    ];
+    final rest = <_Slide>[
       for (final a in auto)
         if (a.card case final c?)
           (
@@ -167,7 +168,9 @@ class HomeScreen extends ConsumerWidget {
         ),
       for (final card in d.featured)
         if (!shown.contains(card.id)) (key: 'product ${card.id}', build: (photo) => _ProductSlide(card, photo: photo)),
-    ].take(_slides).toList();
+    ];
+    final room = (MediaQuery.sizeOf(context).width >= 600 ? 8 : 6) - banners.length;
+    final slides = [...banners, ...rest.take(room < 0 ? 0 : room)];
     final phoneSlugs = {for (final c in d.categories) if (c.kind == CategoryKind.phone) c.slug};
     final phones = [for (final c in d.featured) if (phoneSlugs.contains(c.categorySlug)) c];
     final phoneCategory = phones.firstOrNull?.categorySlug ?? 'smartphones';
@@ -444,11 +447,10 @@ Widget _autoPromo(BuildContext context, AutoBanner kind, List<ProductCard> pool,
 /// One carousel slide: an offer banner or a featured product; [build] gets whether to load its photo.
 typedef _Slide = ({String key, Widget Function(bool photo) build});
 
-/// Offers and featured products in one carousel: the next card peeks, it moves on every 5 s (a thin story-style bar in the
-/// card's corner fills over it), a finger on it holds it, and a bar jumps to a slide; a screen reader swipes up / down to
-/// step it (nothing is swipe-only). Still with reduce-motion or TalkBack on, in data-saver mode, and while another tab is
-/// showing: then small dots stand in for the bars. The one slide motion ([HeroMotion.slowZoom]) stops while it is
-/// scrolled off screen.
+/// Offers and featured products in one carousel: the next card peeks, it moves on every 5 s, and a finger on it holds
+/// it; a screen reader swipes up / down to step it (nothing is swipe-only). No progress row under it: the peeking card
+/// already says there is more. Still with reduce-motion or TalkBack on, in data-saver mode, and while another tab is
+/// showing. The one slide motion ([HeroMotion.slowZoom]) stops while it is scrolled off screen.
 class _HeroCarousel extends StatefulWidget {
   const _HeroCarousel(this.slides, {required this.saver});
 
@@ -462,7 +464,6 @@ class _HeroCarousel extends StatefulWidget {
 class _HeroCarouselState extends State<_HeroCarousel> with SingleTickerProviderStateMixin {
   static const _fraction = 0.92; // the next card peeks
   static const _gap = 4.0; // each side of a card
-  static const _barRow = 24.0; // the progress row under the card
   late final _fill = AnimationController(vsync: this, duration: Motion.hero)
     ..addStatusListener((s) {
       if (s == AnimationStatus.completed) _step(1);
@@ -569,104 +570,37 @@ class _HeroCarouselState extends State<_HeroCarousel> with SingleTickerProviderS
         child: TickerMode(enabled: _onScreen, child: RepaintBoundary(child: widget.slides[0].build(true))),
       );
     }
-    final dots = !_auto; // nothing fills: small static dots, the current one lit
-    final ink = Theme.of(context).colorScheme.onSurface; // the row sits on the canvas, under the card
     return Padding(
       padding: const EdgeInsets.only(top: Space.xs),
       child: SizedBox(
-        height: HeroCard.height + _barRow,
-        child: LayoutBuilder(
-          builder: (context, box) => Stack(
-            children: [
-              // a finger on it holds the slide
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                height: HeroCard.height,
-                child: Listener(
-                onPointerDown: (_) => _touch(true),
-                onPointerUp: (_) => _touch(false),
-                onPointerCancel: (_) => _touch(false),
-                child: TickerMode(
-                  enabled: _onScreen,
-                  child: RepaintBoundary(
-                    child: PageView.builder(
-                      controller: _pages,
-                      itemCount: _count,
-                      onPageChanged: _arrived,
-                      itemBuilder: (_, i) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: _gap),
-                        child: KeyedSubtree(
-                          key: ValueKey(widget.slides[i].key),
-                          child: widget.slides[i].build(!widget.saver || i == _index),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                ),
-              ),
-              // in its own row under the shown card, left-aligned with its text: never on the image or the CTA; a
-              // screen reader swipes up / down to step through
-              Positioned(
-                left: box.maxWidth * (1 - _fraction) / 2 + _gap + Space.gutter,
-                bottom: 0,
-                child: Semantics(
-                  label: tr('Slide {i} of {n}', {'i': _index + 1, 'n': _count}),
-                  onIncrease: () => _step(1),
-                  onDecrease: () => _step(-1),
-                  excludeSemantics: true,
-                  child: AnimatedBuilder(
-                    animation: _fill,
-                    builder: (context, _) => Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (var i = 0; i < _count; i++)
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => _goTo(i),
-                            child: SizedBox(
-                              width: dots ? 24 : 28,
-                              height: _barRow, // the touch target; the bar itself is 3 dp
-                              child: Center(
-                                child: dots
-                                    ? DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          color: ink.withValues(alpha: i == _index ? 0.8 : 0.2),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const SizedBox.square(dimension: 6),
-                                      )
-                                    : DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          color: ink.withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(2),
-                                        ),
-                                        child: SizedBox(
-                                          width: 22,
-                                          height: 3,
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: FractionallySizedBox(
-                                              widthFactor: i < _index ? 1 : (i == _index ? _fill.value : 0),
-                                              child: DecoratedBox(
-                                                decoration: BoxDecoration(color: ink.withValues(alpha: 0.7), borderRadius: const BorderRadius.all(Radius.circular(2))),
-                                                child: const SizedBox(height: 3),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ),
-                      ],
+        height: HeroCard.height,
+        // a screen reader swipes up / down to step through (nothing is swipe-only)
+        child: Semantics(
+          label: tr('Slide {i} of {n}', {'i': _index + 1, 'n': _count}),
+          onIncrease: () => _step(1),
+          onDecrease: () => _step(-1),
+          // a finger on it holds the slide
+          child: Listener(
+            onPointerDown: (_) => _touch(true),
+            onPointerUp: (_) => _touch(false),
+            onPointerCancel: (_) => _touch(false),
+            child: TickerMode(
+              enabled: _onScreen,
+              child: RepaintBoundary(
+                child: PageView.builder(
+                  controller: _pages,
+                  itemCount: _count,
+                  onPageChanged: _arrived,
+                  itemBuilder: (_, i) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: _gap),
+                    child: KeyedSubtree(
+                      key: ValueKey(widget.slides[i].key),
+                      child: widget.slides[i].build(!widget.saver || i == _index),
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
